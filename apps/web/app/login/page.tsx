@@ -20,9 +20,9 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const response = await api.post('/users/login', { email, password });
-      const token = response.data.data;
-      toast.success(response.data.message);
-      login(typeof token === 'string' ? token : JSON.stringify(token));
+      const responseData = response.data.data;
+      toast.success(response.data.message || 'Successfully logged in! Welcome back ✨');
+      login(responseData);
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
       const errorMessage = axiosErr.response?.data?.message || 'An error occurred during login.';

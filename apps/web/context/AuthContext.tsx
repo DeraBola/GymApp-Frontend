@@ -17,7 +17,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string) => void;
+  login: (userData: User & { token: string }) => void;
   logout: () => Promise<void>;
   isLoading: boolean;
 }
@@ -31,52 +31,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for token on mount
+    // Check for token and user on mount
     const storedToken = localStorage.getItem('token');
-    if (storedToken) {
+    const storedUser = localStorage.getItem('user');
+    
+    if (storedToken && storedUser) {
       setToken(storedToken);
       try {
-        // Decode JWT payload without a library
-        const payload = JSON.parse(atob(storedToken.split('.')[1]));
-        
-        // C# JWT puts sub/email in specific claims
-        const emailClaim = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || payload.email;
-        const roleClaim = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role;
-        
-        setUser({
-          id: payload.sub || '',
-          email: emailClaim || '',
-          firstName: payload.given_name || '',
-          lastName: payload.family_name || '',
-          role: roleClaim || 'SuperAdmin',
-          gymId: payload.gymId || undefined
-        });
+        setUser(JSON.parse(storedUser));
       } catch (e) {
-        console.error('Invalid token payload', e);
+        console.error('Invalid user data in local storage', e);
       }
+    } else if (storedToken) {
+      // Token exists but no user data, keep token but user will be null
+      setToken(storedToken);
     }
     setIsLoading(false);
   }, []);
 
-  const login = (newToken: string) => {
-    localStorage.setItem('token', newToken);
-    setToken(newToken);
-    try {
-        const payload = JSON.parse(atob(newToken.split('.')[1]));
-        const emailClaim = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || payload.email;
-        const roleClaim = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role;
-        
-        setUser({
-          id: payload.sub || '',
-          email: emailClaim || '',
-          firstName: payload.given_name || '',
-          lastName: payload.family_name || '',
-          role: roleClaim || 'SuperAdmin',
-          gymId: payload.gymId || undefined
-        });
-    } catch (e) {
-        console.error('Invalid token payload', e);
-    }
+  const login = (userData: User & { token: string }) => {
+    localStorage.setItem('token', userData.token);
+    
+    const userObj = {
+      id: userData.id,
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      role: userData.role,
+      gymId: userData.gymId
+    };
+    
+    localStorage.setItem('user', JSON.stringify(userObj));
+    setToken(userData.token);
+    setUser(userObj);
+    
     router.push('/dashboard');
   };
 
@@ -84,12 +72,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token) {
       try {
         await api.post('/users/logout');
-        toast.success('Logged out successfully! 👋');
       } catch (err) {
         console.error('Logout API failed', err);
       }
     }
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
     router.push('/login');
