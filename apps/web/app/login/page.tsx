@@ -20,12 +20,12 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const response = await api.post('/users/login', { email, password });
-      const token = response.data.value ?? response.data;
-      toast.success('Successfully logged in! Welcome back ✨');
+      const token = response.data.data;
+      toast.success(response.data.message);
       login(typeof token === 'string' ? token : JSON.stringify(token));
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { detail?: string } } };
-      const errorMessage = axiosErr.response?.data?.detail || 'Invalid email or password. Please try again.';
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      const errorMessage = axiosErr.response?.data?.message || 'An error occurred during login.';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {

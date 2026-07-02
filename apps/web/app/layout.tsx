@@ -13,7 +13,7 @@ export default function RootLayout({
       <body className="text-white">
         <AuthProvider>
           {children}
-          <ToastContainer theme="dark" position="bottom-right" />
+          <ToastContainer position="top-right" />
         </AuthProvider>
       </body>
     </html>
