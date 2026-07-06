@@ -22,11 +22,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div
             className="w-10 h-10 rounded-full animate-spin"
             style={{
-              border: '3px solid rgba(255,255,255,0.1)',
+              border: '3px solid rgba(0,0,0,0.1)',
               borderTopColor: '#ec4899',
             }}
           />
-          <p className="text-white/40 text-sm">Loading...</p>
+          <p className="text-slate-500 text-sm">Loading...</p>
         </div>
       </div>
     );

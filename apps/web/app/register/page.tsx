@@ -72,13 +72,13 @@ export default function RegisterPage() {
           >
             GymArch
           </h1>
-          <p className="text-white/50 mt-1 text-sm tracking-wide">Management Dashboard</p>
+          <p className="text-slate-500 mt-1 text-sm tracking-wide">Management Dashboard</p>
         </div>
 
         {/* Glass Card */}
         <div className="glass-strong rounded-3xl p-8 shadow-2xl glow-purple">
-          <h2 className="text-xl font-semibold text-white mb-1">Create your account ✨</h2>
-          <p className="text-white/50 text-sm mb-6">Get started with GymArch today</p>
+          <h2 className="text-xl font-semibold text-slate-900 mb-1">Create your account ✨</h2>
+          <p className="text-slate-500 text-sm mb-6">Get started with GymArch today</p>
 
           {error && (
             <div className="bg-rose-500/10 border border-rose-400/30 text-rose-300 rounded-2xl px-4 py-3 text-sm mb-5">
@@ -90,7 +90,7 @@ export default function RegisterPage() {
             <div className="grid grid-cols-2 gap-4">
               {fields.slice(0, 2).map((field) => (
                 <div key={field.name}>
-                  <label className="block text-white/70 text-sm font-medium mb-2">{field.label}</label>
+                  <label className="block text-slate-700 text-sm font-medium mb-2">{field.label}</label>
                   <input
                     type={field.type}
                     name={field.name}
@@ -98,7 +98,7 @@ export default function RegisterPage() {
                     onChange={handleChange}
                     required
                     placeholder={field.placeholder}
-                    className="w-full glass rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-pink-400/50 transition-all"
+                    className="w-full bg-white/80 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-400/50 transition-all shadow-sm"
                   />
                 </div>
               ))}
@@ -106,7 +106,7 @@ export default function RegisterPage() {
 
             {fields.slice(2, -1).map((field) => (
               <div key={field.name}>
-                <label className="block text-white/70 text-sm font-medium mb-2">{field.label}</label>
+                <label className="block text-slate-700 text-sm font-medium mb-2">{field.label}</label>
                 <input
                   type={field.type}
                   name={field.name}
@@ -114,14 +114,14 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   required
                   placeholder={field.placeholder}
-                  className="w-full glass rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-pink-400/50 transition-all"
+                  className="w-full bg-white/80 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-400/50 transition-all shadow-sm"
                 />
               </div>
             ))}
 
             {/* Password field with eye toggle */}
             <div>
-              <label className="block text-white/70 text-sm font-medium mb-2">Password</label>
+              <label className="block text-slate-700 text-sm font-medium mb-2">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -130,12 +130,12 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   required
                   placeholder="••••••••"
-                  className="w-full glass rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-pink-400/50 transition-all"
+                  className="w-full bg-white/80 border border-slate-200 rounded-xl px-4 py-3 pr-11 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-400/50 transition-all shadow-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-pink-400 transition-colors focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-pink-500 transition-colors focus:outline-none"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
@@ -173,9 +173,9 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <p className="text-center text-white/40 text-sm mt-6">
+          <p className="text-center text-slate-500 text-sm mt-6">
             Already have an account?{' '}
-            <Link href="/login" className="text-pink-400 hover:text-pink-300 font-medium transition-colors">
+            <Link href="/login" className="text-pink-600 hover:text-pink-500 font-medium transition-colors">
               Sign in
             </Link>
           </p>

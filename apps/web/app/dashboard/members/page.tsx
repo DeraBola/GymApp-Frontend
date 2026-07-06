@@ -56,12 +56,12 @@ export default function MembersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Members</h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-slate-900">Members</h1>
+          <p className="text-slate-500 text-sm mt-1">
             {user?.gymId ? 'Members in your gym' : 'All members across all gyms'}
           </p>
         </div>
-        <div className="text-slate-400 text-sm bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2">
+        <div className="text-slate-600 text-sm bg-white border border-slate-200 shadow-sm rounded-xl px-4 py-2">
           {filtered.length} member{filtered.length !== 1 ? 's' : ''}
         </div>
       </div>
@@ -74,29 +74,29 @@ export default function MembersPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name or email..."
-          className="w-full bg-slate-800/50 border border-slate-700/50 text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+          className="w-full bg-white border border-slate-200 shadow-sm text-slate-900 placeholder-slate-400 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition-all"
         />
       </div>
 
       {/* Table */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-700/50">
-                <th className="text-left text-xs font-semibold text-slate-400 uppercase tracking-wider px-6 py-4">Member</th>
-                <th className="text-left text-xs font-semibold text-slate-400 uppercase tracking-wider px-6 py-4">Email</th>
-                <th className="text-left text-xs font-semibold text-slate-400 uppercase tracking-wider px-6 py-4">Phone</th>
-                <th className="text-left text-xs font-semibold text-slate-400 uppercase tracking-wider px-6 py-4">Status</th>
+          <table className="w-full text-sm text-left text-slate-600">
+            <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold">
+              <tr>
+                <th className="px-6 py-4">Member</th>
+                <th className="px-6 py-4">Email</th>
+                <th className="px-6 py-4">Phone</th>
+                <th className="px-6 py-4">Status</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="border-b border-slate-700/30">
+                  <tr key={i} className="animate-pulse">
                     {Array.from({ length: 4 }).map((__, j) => (
                       <td key={j} className="px-6 py-4">
-                        <div className="h-4 bg-slate-700/50 rounded animate-pulse" />
+                        <div className="h-4 bg-slate-200 rounded" />
                       </td>
                     ))}
                   </tr>
@@ -110,17 +110,17 @@ export default function MembersPage() {
                 </tr>
               ) : (
                 filtered.map((member, idx) => (
-                  <tr key={member.id} className={`border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors ${idx === filtered.length - 1 ? 'border-b-0' : ''}`}>
+                  <tr key={member.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-xs font-bold text-blue-400">
+                        <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-xs font-bold text-blue-600">
                           {member.firstName?.[0]?.toUpperCase()}{member.lastName?.[0]?.toUpperCase()}
                         </div>
-                        <span className="text-white text-sm font-medium">{member.firstName} {member.lastName}</span>
+                        <span className="text-slate-900 text-sm font-medium">{member.firstName} {member.lastName}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-300 text-sm">{member.email}</td>
-                    <td className="px-6 py-4 text-slate-300 text-sm">{member.phoneNumber || '—'}</td>
+                    <td className="px-6 py-4 text-slate-600 text-sm">{member.email}</td>
+                    <td className="px-6 py-4 text-slate-600 text-sm">{member.phoneNumber || '—'}</td>
                     <td className="px-6 py-4">
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusColor(member.membershipStatus)}`}>
                         {member.membershipStatus || 'Unknown'}

@@ -60,13 +60,13 @@ export default function LoginPage() {
           >
             GymArch
           </h1>
-          <p className="text-white/50 mt-1 text-sm tracking-wide">Management Dashboard</p>
+          <p className="text-slate-500 mt-1 text-sm tracking-wide">Management Dashboard</p>
         </div>
 
         {/* Glass Card */}
         <div className="glass-strong rounded-3xl p-8 shadow-2xl glow-purple">
-          <h2 className="text-xl font-semibold text-white mb-1">Welcome back ✨</h2>
-          <p className="text-white/50 text-sm mb-6">Sign in to your account to continue</p>
+          <h2 className="text-xl font-semibold text-slate-900 mb-1">Welcome back ✨</h2>
+          <p className="text-slate-500 text-sm mb-6">Sign in to your account to continue</p>
 
           {error && (
             <div className="bg-rose-500/10 border border-rose-400/30 text-rose-300 rounded-2xl px-4 py-3 text-sm mb-5">
@@ -76,18 +76,18 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-white/70 text-sm font-medium mb-2">Email address</label>
+              <label className="block text-slate-700 text-sm font-medium mb-2">Email address</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="admin@example.com"
-                className="w-full glass rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-pink-400/50 focus:border-pink-400/50 transition-all"
+                className="w-full bg-white/80 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-400/50 focus:border-pink-400/50 transition-all shadow-sm"
               />
             </div>
             <div>
-              <label className="block text-white/70 text-sm font-medium mb-2">Password</label>
+              <label className="block text-slate-700 text-sm font-medium mb-2">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -95,12 +95,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full glass rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-pink-400/50 focus:border-pink-400/50 transition-all"
+                  className="w-full bg-white/80 border border-slate-200 rounded-xl px-4 py-3 pr-11 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-400/50 focus:border-pink-400/50 transition-all shadow-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-pink-400 transition-colors focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-pink-500 transition-colors focus:outline-none"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
@@ -140,9 +140,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-white/40 text-sm mt-6">
+          <p className="text-center text-slate-500 text-sm mt-6">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-pink-400 hover:text-pink-300 font-medium transition-colors">
+            <Link href="/register" className="text-pink-600 hover:text-pink-500 font-medium transition-colors">
               Sign up
             </Link>
           </p>

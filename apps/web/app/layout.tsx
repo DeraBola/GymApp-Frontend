@@ -10,7 +10,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="text-white">
+      <body>
         <AuthProvider>
           {children}
           <ToastContainer position="top-right" />

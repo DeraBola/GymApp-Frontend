@@ -93,10 +93,10 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-slate-900">
           {greeting}, {user?.firstName || 'Admin'} 🌸
         </h1>
-        <p className="text-white/40 text-sm mt-1">Here&apos;s what&apos;s happening across your gyms today.</p>
+        <p className="text-slate-500 text-sm mt-1">Here&apos;s what&apos;s happening across your gyms today.</p>
       </div>
 
       {/* Stats Grid */}
@@ -107,12 +107,12 @@ export default function DashboardPage() {
                 key={i}
                 className="rounded-2xl p-6 animate-pulse"
                 style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'rgba(255,255,255,0.8)',
+                  border: '1px solid rgba(0,0,0,0.05)',
                 }}
               >
-                <div className="h-4 w-20 rounded mb-4" style={{ background: 'rgba(255,255,255,0.08)' }} />
-                <div className="h-8 w-12 rounded" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                <div className="h-4 w-20 rounded mb-4 bg-slate-200" />
+                <div className="h-8 w-12 rounded bg-slate-200" />
               </div>
             ))
           : stats.map((stat) => (
@@ -120,33 +120,32 @@ export default function DashboardPage() {
                 key={stat.label}
                 className="rounded-2xl p-6 transition-transform duration-200 hover:scale-[1.02] cursor-default"
                 style={{
-                  background: stat.gradient,
-                  border: '1px solid rgba(255,255,255,0.10)',
+                  background: 'white',
+                  border: '1px solid rgba(0,0,0,0.05)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
-                  boxShadow: `0 8px 32px ${stat.glow}`,
+                  boxShadow: `0 8px 32px ${stat.glow.replace('0.2', '0.05')}`, // softer shadow
                 }}
               >
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-2xl">{stat.icon}</span>
                   {stat.change && (
                     <span
-                      className="text-xs text-white/50 px-2 py-1 rounded-full"
-                      style={{ background: 'rgba(255,255,255,0.08)' }}
+                      className="text-xs text-slate-500 px-2 py-1 rounded-full bg-slate-100"
                     >
                       {stat.change}
                     </span>
                   )}
                 </div>
-                <p className="text-3xl font-bold text-white">{stat.value}</p>
-                <p className="text-white/50 text-sm mt-1">{stat.label}</p>
+                <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
+                <p className="text-slate-500 text-sm mt-1">{stat.label}</p>
               </div>
             ))}
       </div>
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { label: 'Manage Gyms', href: '/dashboard/gyms', icon: '🏛️', desc: 'View and manage all gym locations' },
@@ -158,23 +157,23 @@ export default function DashboardPage() {
               href={action.href}
               className="rounded-2xl p-5 transition-all duration-200 group hover:scale-[1.02]"
               style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.8)',
+                border: '1px solid rgba(0,0,0,0.05)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(236,72,153,0.1)';
-                (e.currentTarget as HTMLAnchorElement).style.border = '1px solid rgba(236,72,153,0.2)';
+                (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(236,72,153,0.05)';
+                (e.currentTarget as HTMLAnchorElement).style.border = '1px solid rgba(236,72,153,0.1)';
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.05)';
-                (e.currentTarget as HTMLAnchorElement).style.border = '1px solid rgba(255,255,255,0.08)';
+                (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.8)';
+                (e.currentTarget as HTMLAnchorElement).style.border = '1px solid rgba(0,0,0,0.05)';
               }}
             >
               <div className="text-2xl mb-3">{action.icon}</div>
-              <p className="text-white font-medium text-sm group-hover:text-pink-300 transition-colors">{action.label}</p>
-              <p className="text-white/40 text-xs mt-1">{action.desc}</p>
+              <p className="text-slate-900 font-medium text-sm group-hover:text-pink-600 transition-colors">{action.label}</p>
+              <p className="text-slate-500 text-xs mt-1">{action.desc}</p>
             </a>
           ))}
         </div>
