@@ -70,7 +70,7 @@ export default function RegisterPage() {
             className="text-4xl font-bold text-gradient"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            GymArch
+            FitTitans
           </h1>
           <p className="text-slate-500 mt-1 text-sm tracking-wide">Management Dashboard</p>
         </div>

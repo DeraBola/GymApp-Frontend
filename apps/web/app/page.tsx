@@ -10,7 +10,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!isLoading) {
-      router.replace(token ? '/dashboard' : '/login');
+      router.replace(token ? '/dashboard/analytics' : '/login');
     }
   }, [token, isLoading, router]);
 

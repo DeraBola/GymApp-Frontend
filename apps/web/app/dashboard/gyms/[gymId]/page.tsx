@@ -5,28 +5,14 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../../context/AuthContext';
 import api from '../../../../lib/api';
-
-interface Gym {
-  id: string;
-  name: string;
-  address: string;
-  email: string;
-  phoneNumber: string;
-}
-
-interface Branch {
-  id: string;
-  name: string;
-  address: string;
-  phoneNumber: string;
-}
-
-interface EditForm {
-  name: string;
-  address: string;
-  email: string;
-  phoneNumber: string;
-}
+import { toast } from 'react-toastify';
+import { AppTable, AppModal, Column } from '@repo/ui';
+import {
+  Button, TextField, Box, Typography, Stack, Chip, Checkbox, FormControlLabel,
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
+import { Gym, Branch, EditGymForm, BranchForm } from '../../../../types/gym';
 
 export default function GymDetailPage() {
   const { gymId } = useParams<{ gymId: string }>();
@@ -38,34 +24,32 @@ export default function GymDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showBranchModal, setShowBranchModal] = useState(false);
-  const [editForm, setEditForm] = useState<EditForm>({ name: '', address: '', email: '', phoneNumber: '' });
-  const [branchForm, setBranchForm] = useState({ name: '', address: '', phoneNumber: '' });
+  const [editForm, setEditForm] = useState<EditGymForm>({ name: '', address: '', email: '', phoneNumber: '', country: '', isActive: true });
+  const [branchForm, setBranchForm] = useState<BranchForm>({ name: '', address: '', phoneNumber: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchGym = async () => {
     try {
-      const res = await api.get(`/gyms/${gymId}`);
-      const data = res.data?.value ?? res.data;
+      const res = await api.get(`/gym/${gymId}`);
+      const data = res.data?.data ?? res.data?.value ?? res.data;
       setGym(data);
-      setEditForm({ name: data.name, address: data.address || '', email: data.email || '', phoneNumber: data.phoneNumber || '' });
+      setEditForm({
+        name: data.name ?? '',
+        address: data.address ?? '',
+        email: data.email ?? '',
+        phoneNumber: data.phoneNumber ?? '',
+        country: data.country ?? '',
+        isActive: data.isActive ?? true,
+      });
     } catch {
       setGym(null);
-    }
-  };
-
-  const fetchBranches = async () => {
-    try {
-      const res = await api.get(`/branches/gym/${gymId}`);
-      setBranches(res.data?.value ?? res.data ?? []);
-    } catch {
-      setBranches([]);
     }
   };
 
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
-      await Promise.allSettled([fetchGym(), fetchBranches()]);
+      await fetchGym();
       setIsLoading(false);
     };
     load();
@@ -76,11 +60,12 @@ export default function GymDetailPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await api.put(`/gyms/${gymId}`, editForm);
+      await api.put(`/gym/${gymId}`, editForm);
+      toast.success('Gym updated successfully!');
       await fetchGym();
       setShowEditModal(false);
-    } catch {
-      alert('Failed to update gym.');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.response?.data?.detail || 'Failed to update gym.');
     } finally {
       setIsSubmitting(false);
     }
@@ -90,23 +75,29 @@ export default function GymDetailPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await api.post(`/branches/${gymId}`, branchForm);
-      await fetchBranches();
+      await api.post(`/branch/${gymId}`, branchForm);
+      toast.success('Branch added successfully!');
       setShowBranchModal(false);
       setBranchForm({ name: '', address: '', phoneNumber: '' });
-    } catch {
-      alert('Failed to create branch.');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.response?.data?.detail || 'Failed to create branch.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const branchColumns: Column<Branch>[] = [
+    { key: 'name', label: 'Branch Name', render: (row) => <Typography sx={{ fontWeight: 600 }} variant="body2" color="text.primary">{row.name}</Typography> },
+    { key: 'address', label: 'Address' },
+    { key: 'phoneNumber', label: 'Phone' },
+  ];
+
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 w-48 bg-slate-200 rounded" />
-        <div className="h-32 bg-slate-100 rounded-2xl" />
-        <div className="h-64 bg-slate-100 rounded-2xl" />
+      <div className="flex flex-col gap-6 animate-pulse">
+        <div className="h-8 w-48 rounded bg-slate-200" />
+        <div className="h-32 rounded-2xl bg-slate-100" />
+        <div className="h-64 rounded-2xl bg-slate-100" />
       </div>
     );
   }
@@ -114,159 +105,115 @@ export default function GymDetailPage() {
   if (!gym) {
     return (
       <div className="text-center py-24">
-        <div className="text-5xl mb-4">😕</div>
-        <p className="text-slate-900 font-semibold">Gym not found</p>
-        <Link href="/dashboard/gyms" className="text-pink-600 hover:text-pink-500 text-sm mt-2 inline-block">← Back to Gyms</Link>
+        <p className="text-5xl mb-2">😕</p>
+        <p className="font-semibold text-slate-700">Gym not found</p>
+        <Link href="/dashboard/gyms" className="text-pink-500 text-sm mt-2 inline-block hover:text-pink-700 transition-colors">
+          ← Back to Gyms
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-slate-500">
-        <Link href="/dashboard/gyms" className="hover:text-slate-900 transition-colors">Gyms</Link>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.875rem', color: '#64748b' }}>
+        <Link href="/dashboard/gyms" className="text-slate-500 hover:text-pink-500 transition-colors no-underline text-sm">Gyms</Link>
         <span>›</span>
-        <span className="text-slate-900">{gym.name}</span>
-      </div>
+        <Typography variant="body2" color="text.primary" sx={{ fontWeight: 500 }}>{gym.name}</Typography>
+      </Box>
 
       {/* Gym Info Card */}
-      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-pink-50 border border-pink-100 rounded-2xl flex items-center justify-center text-2xl text-pink-600">
+      <Box sx={{ bgcolor: 'white', border: '1px solid #e2e8f0', borderRadius: 3, p: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ width: 56, height: 56, bgcolor: '#fdf4ff', border: '1px solid #f3e8ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
               🏢
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">{gym.name}</h1>
-              <p className="text-slate-500 text-sm mt-0.5">{gym.address || 'No address set'}</p>
-            </div>
-          </div>
+            </Box>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 700 }} color="text.primary">{gym.name}</Typography>
+              <Typography variant="body2" color="text.secondary">{gym.address || 'No address set'}</Typography>
+              <Chip
+                label={gym.isActive ? 'Active' : 'Inactive'}
+                size="small"
+                sx={{ mt: 0.5, bgcolor: gym.isActive ? '#f0fdf4' : '#fef2f2', color: gym.isActive ? '#16a34a' : '#dc2626', border: `1px solid ${gym.isActive ? '#bbf7d0' : '#fecaca'}`, fontWeight: 600 }}
+              />
+            </Box>
+          </Box>
           {isSuperAdmin && (
-            <button
-              onClick={() => setShowEditModal(true)}
-              className="text-sm text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-xl transition-all"
-            >
-              Edit Gym
-            </button>
+            <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setShowEditModal(true)} sx={{ borderColor: '#e2e8f0', color: 'text.secondary', fontSize: '0.8rem' }}>
+              Edit
+            </Button>
           )}
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-200">
-          <div>
-            <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Email</p>
-            <p className="text-slate-700 text-sm">{gym.email || '—'}</p>
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Phone</p>
-            <p className="text-slate-700 text-sm">{gym.phoneNumber || '—'}</p>
-          </div>
-        </div>
-      </div>
+        </Box>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(3, 1fr)' }, gap: 2, mt: 2, pt: 2, borderTop: '1px solid #f1f5f9' }}>
+          {[
+            { label: 'Email', value: gym.email },
+            { label: 'Phone', value: gym.phoneNumber },
+            { label: 'Country', value: gym.country },
+          ].map(({ label, value }) => (
+            <Box key={label}>
+              <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', mb: 0.5 }}>{label}</Typography>
+              <Typography variant="body2" color="text.primary">{value || '—'}</Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
 
-      {/* Branches Table */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-900">Branches</h2>
+      {/* Branches */}
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }} color="text.primary">Branches</Typography>
           {isSuperAdmin && (
-            <button
-              onClick={() => setShowBranchModal(true)}
-              className="flex items-center gap-2 text-sm bg-pink-600 hover:bg-pink-500 text-white font-semibold px-4 py-2 rounded-xl transition-all hover:-translate-y-0.5 shadow-lg shadow-pink-500/20"
-            >
-              + Add Branch
-            </button>
+            <Button variant="contained" startIcon={<AddIcon />} size="small" onClick={() => setShowBranchModal(true)}>
+              Add Branch
+            </Button>
           )}
-        </div>
-        <div className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50">
-              <tr className="border-b border-slate-200">
-                <th className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">Branch Name</th>
-                <th className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">Address</th>
-                <th className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">Phone</th>
-              </tr>
-            </thead>
-            <tbody>
-              {branches.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="text-center text-slate-500 py-12 text-sm">
-                    <div className="text-3xl mb-2">🏗️</div>
-                    No branches yet. {isSuperAdmin ? 'Add one above.' : ''}
-                  </td>
-                </tr>
-              ) : (
-                branches.map((branch, idx) => (
-                  <tr key={branch.id} className={`border-b border-slate-100 hover:bg-slate-50/50 transition-colors ${idx === branches.length - 1 ? 'border-b-0' : ''}`}>
-                    <td className="px-6 py-4 text-slate-900 text-sm font-medium">{branch.name}</td>
-                    <td className="px-6 py-4 text-slate-600 text-sm">{branch.address || '—'}</td>
-                    <td className="px-6 py-4 text-slate-600 text-sm">{branch.phoneNumber || '—'}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        </Box>
+        <AppTable
+          columns={branchColumns}
+          rows={branches}
+          emptyIcon="🏗️"
+          emptyTitle="No branches yet."
+          emptySubtitle={isSuperAdmin ? 'Add one using the button above.' : ''}
+        />
+      </Box>
 
       {/* Edit Gym Modal */}
-      {showEditModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h2 className="text-lg font-bold text-slate-900 mb-5">Edit Gym</h2>
-            <form onSubmit={handleUpdate} className="space-y-4">
-              {(['name', 'address', 'email', 'phoneNumber'] as const).map((field) => (
-                <div key={field}>
-                  <label className="block text-slate-700 text-sm font-medium mb-1.5 capitalize">
-                    {field === 'phoneNumber' ? 'Phone Number' : field.charAt(0).toUpperCase() + field.slice(1)}
-                  </label>
-                  <input
-                    type={field === 'email' ? 'email' : 'text'}
-                    value={editForm[field]}
-                    onChange={(e) => setEditForm((p) => ({ ...p, [field]: e.target.value }))}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition-all"
-                  />
-                </div>
-              ))}
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowEditModal(false)} className="flex-1 text-slate-600 bg-slate-100 hover:bg-slate-200 py-2.5 rounded-xl text-sm font-medium transition-all">Cancel</button>
-                <button type="submit" disabled={isSubmitting} className="flex-1 bg-pink-600 hover:bg-pink-500 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-all">
-                  {isSubmitting ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AppModal open={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Gym" maxWidth="sm">
+        <form onSubmit={handleUpdate}>
+          <Stack spacing={2.5} sx={{ mt: 1, mb: 1 }}>
+            <TextField label="Name" required fullWidth value={editForm.name} onChange={(e) => setEditForm(p => ({ ...p, name: e.target.value }))} />
+            <TextField label="Address" fullWidth value={editForm.address} onChange={(e) => setEditForm(p => ({ ...p, address: e.target.value }))} />
+            <TextField label="Email" type="email" fullWidth value={editForm.email} onChange={(e) => setEditForm(p => ({ ...p, email: e.target.value }))} />
+            <TextField label="Phone Number" fullWidth value={editForm.phoneNumber} onChange={(e) => setEditForm(p => ({ ...p, phoneNumber: e.target.value }))} />
+            <TextField label="Country" required fullWidth value={editForm.country} onChange={(e) => setEditForm(p => ({ ...p, country: e.target.value }))} />
+            <FormControlLabel
+              control={<Checkbox checked={editForm.isActive} onChange={(e) => setEditForm(p => ({ ...p, isActive: e.target.checked }))} sx={{ color: '#ec4899', '&.Mui-checked': { color: '#ec4899' } }} />}
+              label="Active"
+            />
+          </Stack>
+          <Stack direction="row" spacing={1.5} sx={{ mt: 2, mb: 1 }}>
+            <Button fullWidth variant="outlined" onClick={() => setShowEditModal(false)} sx={{ borderColor: '#e2e8f0', color: 'text.secondary' }}>Cancel</Button>
+            <Button fullWidth variant="contained" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save Changes'}</Button>
+          </Stack>
+        </form>
+      </AppModal>
 
-      {/* Create Branch Modal */}
-      {showBranchModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h2 className="text-lg font-bold text-slate-900 mb-5">Add Branch</h2>
-            <form onSubmit={handleCreateBranch} className="space-y-4">
-              {(['name', 'address', 'phoneNumber'] as const).map((field) => (
-                <div key={field}>
-                  <label className="block text-slate-700 text-sm font-medium mb-1.5 capitalize">
-                    {field === 'phoneNumber' ? 'Phone Number' : field.charAt(0).toUpperCase() + field.slice(1)}
-                  </label>
-                  <input
-                    type="text"
-                    value={branchForm[field]}
-                    onChange={(e) => setBranchForm((p) => ({ ...p, [field]: e.target.value }))}
-                    required={field === 'name'}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition-all"
-                  />
-                </div>
-              ))}
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowBranchModal(false)} className="flex-1 text-slate-600 bg-slate-100 hover:bg-slate-200 py-2.5 rounded-xl text-sm font-medium transition-all">Cancel</button>
-                <button type="submit" disabled={isSubmitting} className="flex-1 bg-pink-600 hover:bg-pink-500 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-all">
-                  {isSubmitting ? 'Adding...' : 'Add Branch'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+      {/* Add Branch Modal */}
+      <AppModal open={showBranchModal} onClose={() => setShowBranchModal(false)} title="Add Branch" maxWidth="sm">
+        <form onSubmit={handleCreateBranch}>
+          <Stack spacing={2.5} sx={{ mt: 1, mb: 1 }}>
+            <TextField label="Branch Name" required fullWidth value={branchForm.name} onChange={(e) => setBranchForm(p => ({ ...p, name: e.target.value }))} />
+            <TextField label="Address" fullWidth value={branchForm.address} onChange={(e) => setBranchForm(p => ({ ...p, address: e.target.value }))} />
+            <TextField label="Phone Number" fullWidth value={branchForm.phoneNumber} onChange={(e) => setBranchForm(p => ({ ...p, phoneNumber: e.target.value }))} />
+          </Stack>
+          <Stack direction="row" spacing={1.5} sx={{ mt: 2, mb: 1 }}>
+            <Button fullWidth variant="outlined" onClick={() => setShowBranchModal(false)} sx={{ borderColor: '#e2e8f0', color: 'text.secondary' }}>Cancel</Button>
+            <Button fullWidth variant="contained" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Adding...' : 'Add Branch'}</Button>
+          </Stack>
+        </form>
+      </AppModal>
+    </Box>
   );
 }
