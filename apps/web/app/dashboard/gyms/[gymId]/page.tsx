@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../../context/AuthContext';
 import api from '../../../../lib/api';
+import { extractData } from '../../../../lib/apiHelpers';
 import { toast } from 'react-toastify';
 import { AppTable, AppModal, Column } from '@repo/ui';
 import {
@@ -12,14 +13,14 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
-import { Gym, Branch, EditGymForm, BranchForm } from '../../../../types/gym';
+import { Gym, GymDetail, Branch, EditGymForm, BranchForm } from '../../../../types/gym';
 
 export default function GymDetailPage() {
   const { gymId } = useParams<{ gymId: string }>();
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'SuperAdmin' || user?.role === 'Admin';
 
-  const [gym, setGym] = useState<Gym | null>(null);
+  const [gym, setGym] = useState<GymDetail | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -31,7 +32,7 @@ export default function GymDetailPage() {
   const fetchGym = async () => {
     try {
       const res = await api.get(`/gym/${gymId}`);
-      const data = res.data?.data ?? res.data?.value ?? res.data;
+      const data = extractData<GymDetail>(res);
       setGym(data);
       setEditForm({
         name: data.name ?? '',

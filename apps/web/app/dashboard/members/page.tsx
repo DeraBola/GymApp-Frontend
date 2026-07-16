@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../lib/api';
+import { extractPagedItems } from '../../../lib/apiHelpers';
 import { toast } from 'react-toastify';
 import { AppTable, Column } from '@repo/ui';
 import { Box, Chip, Typography, TextField, Alert } from '@mui/material';
@@ -30,8 +31,8 @@ export default function MembersPage() {
       try {
         if (!user?.gymId) { setMembers([]); setIsLoading(false); return; }
         const res = await api.get(`/members/all/${user.gymId}`);
-        const data = res.data?.data ?? res.data?.value ?? res.data ?? [];
-        setMembers(Array.isArray(data) ? data : []);
+        const items = extractPagedItems(res);
+        setMembers(items);
       } catch {
         toast.error('Failed to load members.');
         setMembers([]);
@@ -67,9 +68,9 @@ export default function MembersPage() {
     { key: 'email', label: 'Email' },
     { key: 'phoneNumber', label: 'Phone' },
     {
-      key: 'membershipStatus',
+      key: 'status',
       label: 'Status',
-      render: (row) => statusChip(row.membershipStatus),
+      render: (row) => statusChip(row.status),
     },
   ];
 

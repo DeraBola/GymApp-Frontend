@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
+import { extractPagedItems, extractData } from '../../../lib/apiHelpers';
 import { useAuth } from '../../../context/AuthContext';
 import { toast } from 'react-toastify';
 import { AppTable, AppModal, ConfirmModal, Column } from '@repo/ui';
@@ -9,7 +10,8 @@ import {
   Button, TextField, Box, Chip, Typography, Stack, Alert, InputAdornment,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { Payment, PaymentMember, PaymentForm } from '../../../types/payment';
+import { Payment, PaymentForm } from '../../../types/payment';
+import { Member } from '../../../types/member';
 
 const statusChip = (status: string) => {
   const map: Record<string, { bg: string; color: string; border: string }> = {
@@ -25,21 +27,21 @@ const statusChip = (status: string) => {
 export default function PaymentsPage() {
   const { user } = useAuth();
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [members, setMembers] = useState<PaymentMember[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showInitModal, setShowInitModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [form, setForm] = useState<PaymentForm>({ memberId: '', amount: '' });
+  const [form, setForm] = useState<PaymentForm>({ memberId: '', email: '', amount: '' });
 
   const fetchPayments = async () => {
     if (!user?.gymId) { setPayments([]); setIsLoading(false); return; }
     setIsLoading(true);
     try {
       const res = await api.get(`/payments/gym/${user.gymId}`);
-      const data = res.data?.data ?? res.data?.value ?? res.data ?? [];
-      setPayments(Array.isArray(data) ? data : []);
+      const items = extractPagedItems(res);
+      setPayments(items);
     } catch {
       toast.error('Failed to load payments.');
       setPayments([]);
@@ -52,8 +54,8 @@ export default function PaymentsPage() {
     if (!user?.gymId) return;
     try {
       const res = await api.get(`/members/all/${user.gymId}`);
-      const data = res.data?.data ?? res.data?.value ?? res.data ?? [];
-      setMembers(Array.isArray(data) ? data : []);
+      const items = extractPagedItems(res);
+      setMembers(items);
     } catch { setMembers([]); }
   };
 
@@ -62,18 +64,17 @@ export default function PaymentsPage() {
   const handleInitPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.gymId) return;
-    const selectedMember = members.find(m => m.id === form.memberId);
-    if (!selectedMember) { toast.error('Please select a valid member.'); return; }
+    if (!form.memberId) { toast.error('Please select a valid member.'); return; }
     setIsSubmitting(true);
     try {
       await api.post(`/payments/initialize/${user.gymId}`, {
         memberId: form.memberId,
-        email: selectedMember.email,
+        email: form.email,
         amount: parseFloat(form.amount),
       });
       toast.success('Payment initialized successfully!');
       setShowInitModal(false);
-      setForm({ memberId: '', amount: '' });
+      setForm({ memberId: '', email: '', amount: '' });
       fetchPayments();
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.response?.data?.detail || 'Failed to initialize payment.');
@@ -212,7 +213,7 @@ export default function PaymentsPage() {
       {/* Initialize Payment Modal */}
       <AppModal
         open={showInitModal}
-        onClose={() => { setShowInitModal(false); setForm({ memberId: '', amount: '' }); }}
+        onClose={() => { setShowInitModal(false); setForm({ memberId: '', email: '', amount: '' }); }}
         title="Initialize Payment"
         subtitle="Create a new payment for a member."
         maxWidth="xs"

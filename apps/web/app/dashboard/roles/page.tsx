@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { toast } from 'react-toastify';
 import api from '../../../lib/api';
+import { extractPagedItems } from '../../../lib/apiHelpers';
 import { AppTable, AppModal, ConfirmModal, Column } from '@repo/ui';
 import { Button, TextField, Box, Typography, Stack, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -23,9 +24,21 @@ export default function RolesPage() {
   const [form, setForm] = useState({ name: '', description: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    setIsLoading(false);
-  }, []);
+  const fetchRoles = async () => {
+    setIsLoading(true);
+    try {
+      const res = await api.get('/roles');
+      const items = extractPagedItems(res);
+      setRoles(items);
+    } catch {
+      toast.error('Failed to load roles.');
+      setRoles([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchRoles(); }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +48,7 @@ export default function RolesPage() {
       toast.success('Role created successfully!');
       setShowCreateModal(false);
       setForm({ name: '', description: '' });
+      fetchRoles();
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.response?.data?.detail || 'Failed to create role.');
     } finally {
@@ -42,9 +56,16 @@ export default function RolesPage() {
     }
   };
 
-  const handleDelete = async (_id: string) => {
-    toast.error('Role deletion is not supported by the current API.');
-    setDeleteId(null);
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/roles/${id}`);
+      toast.success('Role deleted successfully.');
+      fetchRoles();
+    } catch {
+      toast.error('Failed to delete role.');
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   const handleAssignPermissions = async (e: React.FormEvent) => {
@@ -99,9 +120,7 @@ export default function RolesPage() {
         )}
       </Box>
 
-      <Alert severity="info" sx={{ borderRadius: 2 }}>
-        A GET endpoint for listing roles is not yet available. Roles you create will appear here once the API is updated.
-      </Alert>
+
 
       <AppTable
         columns={columns}

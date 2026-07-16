@@ -1,8 +1,12 @@
 export interface Member {
   id: string;
+  email: string;
   firstName: string;
   lastName: string;
-  email: string;
   phoneNumber: string;
-  membershipStatus: string;
+  gender: string;
+  dob: string;
+  gymId: string;
+  status: string;
+  createdAt: string;
 }

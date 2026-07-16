@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { toast } from 'react-toastify';
 import api from '../../../lib/api';
+import { extractPagedItems } from '../../../lib/apiHelpers';
 import { AppTable, AppModal, ConfirmModal, Column } from '@repo/ui';
-import { Button, TextField, Box, Typography, Stack, Alert } from '@mui/material';
+import { Button, TextField, Box, Typography, Stack } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { Permission } from '../../../types/permission';
 
@@ -20,9 +21,21 @@ export default function PermissionsPage() {
   const [form, setForm] = useState({ name: '', description: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    setIsLoading(false);
-  }, []);
+  const fetchPermissions = async () => {
+    setIsLoading(true);
+    try {
+      const res = await api.get('/permissions');
+      const items = extractPagedItems(res);
+      setPermissions(items);
+    } catch {
+      toast.error('Failed to load permissions.');
+      setPermissions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchPermissions(); }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +47,7 @@ export default function PermissionsPage() {
       toast.success('Permission created successfully!');
       setShowModal(false);
       setForm({ name: '', description: '' });
+      fetchPermissions();
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.response?.data?.detail || 'Failed to create permission.');
     } finally {
@@ -41,9 +55,16 @@ export default function PermissionsPage() {
     }
   };
 
-  const handleDelete = async (_id: string) => {
-    toast.error('Permission deletion is not supported by the current API.');
-    setDeleteId(null);
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/permissions/${id}`);
+      toast.success('Permission deleted successfully.');
+      fetchPermissions();
+    } catch {
+      toast.error('Failed to delete permission.');
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   const columns: Column<Permission>[] = [
@@ -77,9 +98,7 @@ export default function PermissionsPage() {
         )}
       </Box>
 
-      <Alert severity="info" sx={{ borderRadius: 2 }}>
-        A GET endpoint for listing permissions is not yet available. Permissions you create will appear here once the API is updated.
-      </Alert>
+
 
       <AppTable
         columns={columns}

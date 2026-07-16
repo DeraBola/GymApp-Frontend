@@ -9,14 +9,14 @@ export interface Payment {
   gymId: string;
 }
 
-export interface PaymentMember {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
+export interface InitializePaymentResponse {
+  authorizationUrl: string;
+  accessCode: string;
+  reference: string;
 }
 
 export interface PaymentForm {
   memberId: string;
+  email: string;
   amount: string;
 }

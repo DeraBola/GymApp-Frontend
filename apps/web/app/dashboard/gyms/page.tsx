@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../lib/api';
+import { extractPagedItems } from '../../../lib/apiHelpers';
 import { toast } from 'react-toastify';
 import { AppTable, AppModal, ConfirmModal, Column } from '@repo/ui';
 import { Button, TextField, Box, Chip, Typography, Stack } from '@mui/material';
@@ -27,8 +28,8 @@ export default function GymsPage() {
     setIsLoading(true);
     try {
       const res = await api.get('/gyms/All');
-      const data = res.data?.data ?? res.data?.value ?? res.data ?? [];
-      setGyms(Array.isArray(data) ? data : []);
+      const items = extractPagedItems(res);
+      setGyms(items);
     } catch {
       toast.error('Failed to load gyms.');
       setGyms([]);

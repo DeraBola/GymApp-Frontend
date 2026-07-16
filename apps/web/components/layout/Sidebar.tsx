@@ -26,7 +26,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         </div>
         <div>
           <p className="font-bold text-sm leading-tight text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>
-            GymArch
+            Fit Titans
           </p>
           <p className="text-slate-500 text-xs">Management</p>
         </div>

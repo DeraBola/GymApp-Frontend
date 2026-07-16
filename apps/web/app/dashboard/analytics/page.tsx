@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../lib/api';
+import { extractPagedItems } from '../../../lib/apiHelpers';
 import { StatCard } from '../../../types/analytics';
 import { defaultStats, quickActions } from '../../../data/analytics';
 
@@ -18,15 +19,15 @@ export default function DashboardPage() {
         const gymsFetch = api.get('/gyms/All');
         const membersFetch = user?.gymId
           ? api.get(`/members/all/${user.gymId}`)
-          : Promise.resolve({ data: { value: [] } });
+          : Promise.resolve({ data: { success: true, message: '', data: { items: [], totalCount: 0, page: 1, pageSize: 10, hasNextPage: false, hasPreviousPage: false } } });
 
         const [gymsRes, membersRes] = await Promise.allSettled([gymsFetch, membersFetch]);
 
         const gyms = gymsRes.status === 'fulfilled'
-          ? (gymsRes.value.data?.value ?? gymsRes.value.data ?? [])
+          ? extractPagedItems(gymsRes.value)
           : [];
         const members = membersRes.status === 'fulfilled'
-          ? (membersRes.value.data?.value ?? membersRes.value.data ?? [])
+          ? extractPagedItems(membersRes.value)
           : [];
 
         setStats([
