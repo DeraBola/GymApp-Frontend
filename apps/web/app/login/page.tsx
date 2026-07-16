@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import api from '../../lib/api';
+import { Logo } from '../../components/ui/Logo';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -51,15 +52,12 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         {/* Logo / Branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 glass-strong glow-pink">
-            <span className="text-3xl">🌸</span>
-          </div>
-          <h1
-            className="text-4xl font-bold text-gradient"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            FitTitans
-          </h1>
+          <Logo
+            containerClassName="flex flex-col items-center justify-center"
+            iconWrapperClassName="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 glass-strong glow-pink"
+            icon={<span className="text-3xl">🌸</span>}
+            textClassName="text-4xl font-bold text-gradient"
+          />
           <p className="text-slate-500 mt-1 text-sm tracking-wide">Management Dashboard</p>
         </div>
 

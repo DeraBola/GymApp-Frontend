@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import Sidebar from '../../components/layout/Sidebar';
+import { Logo } from '../../components/ui/Logo';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { token, isLoading } = useAuth();
@@ -53,10 +54,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </svg>
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-pink-500/40">
-              🌸
-            </div>
-            <span className="font-bold text-sm text-slate-900">GymArch</span>
+            <Logo 
+              iconWrapperClassName="w-7 h-7 rounded-lg flex items-center justify-center text-sm bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-pink-500/40"
+              textClassName="font-bold text-sm text-slate-900"
+            />
           </div>
         </header>
 

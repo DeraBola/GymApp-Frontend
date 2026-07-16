@@ -3,6 +3,12 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MuiProvider from '../components/providers/MuiProvider';
 import "./globals.css";
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'FitTitans',
+  description: 'Management Dashboard for FitTitans',
+};
 
 export default function RootLayout({
   children,

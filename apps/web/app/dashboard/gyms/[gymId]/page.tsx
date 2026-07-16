@@ -42,6 +42,7 @@ export default function GymDetailPage() {
         country: data.country ?? '',
         isActive: data.isActive ?? true,
       });
+      setBranches(data.branches || []);
     } catch {
       setGym(null);
     }
@@ -80,6 +81,7 @@ export default function GymDetailPage() {
       toast.success('Branch added successfully!');
       setShowBranchModal(false);
       setBranchForm({ name: '', address: '', phoneNumber: '' });
+      await fetchGym();
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.response?.data?.detail || 'Failed to create branch.');
     } finally {
@@ -121,7 +123,7 @@ export default function GymDetailPage() {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.875rem', color: '#64748b' }}>
         <Link href="/dashboard/gyms" className="text-slate-500 hover:text-pink-500 transition-colors no-underline text-sm">Gyms</Link>
         <span>›</span>
-        <Typography variant="body2" color="text.primary" sx={{ fontWeight: 500 }}>{gym.name}</Typography>
+        <Typography variant="body2" color="text.primary" sx={{ fontWeight: 500, textTransform: 'capitalize' }}>{gym.name}</Typography>
       </Box>
 
       {/* Gym Info Card */}
@@ -132,8 +134,8 @@ export default function GymDetailPage() {
               🏢
             </Box>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700 }} color="text.primary">{gym.name}</Typography>
-              <Typography variant="body2" color="text.secondary">{gym.address || 'No address set'}</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700, textTransform: 'capitalize' }} color="text.primary">{gym.name}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ textTransform: 'capitalize' }}>{gym.address || 'No address set'}</Typography>
               <Chip
                 label={gym.isActive ? 'Active' : 'Inactive'}
                 size="small"
@@ -149,13 +151,13 @@ export default function GymDetailPage() {
         </Box>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(3, 1fr)' }, gap: 2, mt: 2, pt: 2, borderTop: '1px solid #f1f5f9' }}>
           {[
-            { label: 'Email', value: gym.email },
-            { label: 'Phone', value: gym.phoneNumber },
-            { label: 'Country', value: gym.country },
-          ].map(({ label, value }) => (
+            { label: 'Email', value: gym.email, capitalize: false },
+            { label: 'Phone', value: gym.phoneNumber, capitalize: false },
+            { label: 'Country', value: gym.country, capitalize: true },
+          ].map(({ label, value, capitalize }) => (
             <Box key={label}>
               <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', mb: 0.5 }}>{label}</Typography>
-              <Typography variant="body2" color="text.primary">{value || '—'}</Typography>
+              <Typography variant="body2" color="text.primary" sx={capitalize ? { textTransform: 'capitalize' } : {}}>{value || '—'}</Typography>
             </Box>
           ))}
         </Box>
@@ -184,11 +186,11 @@ export default function GymDetailPage() {
       <AppModal open={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Gym" maxWidth="sm">
         <form onSubmit={handleUpdate}>
           <Stack spacing={2.5} sx={{ mt: 1, mb: 1 }}>
-            <TextField label="Name" required fullWidth value={editForm.name} onChange={(e) => setEditForm(p => ({ ...p, name: e.target.value }))} />
-            <TextField label="Address" fullWidth value={editForm.address} onChange={(e) => setEditForm(p => ({ ...p, address: e.target.value }))} />
+            <TextField label="Name" required fullWidth value={editForm.name} onChange={(e) => setEditForm(p => ({ ...p, name: e.target.value }))} sx={{ '& input': { textTransform: 'capitalize' } }} />
+            <TextField label="Address" fullWidth value={editForm.address} onChange={(e) => setEditForm(p => ({ ...p, address: e.target.value }))} sx={{ '& input': { textTransform: 'capitalize' } }} />
             <TextField label="Email" type="email" fullWidth value={editForm.email} onChange={(e) => setEditForm(p => ({ ...p, email: e.target.value }))} />
             <TextField label="Phone Number" fullWidth value={editForm.phoneNumber} onChange={(e) => setEditForm(p => ({ ...p, phoneNumber: e.target.value }))} />
-            <TextField label="Country" required fullWidth value={editForm.country} onChange={(e) => setEditForm(p => ({ ...p, country: e.target.value }))} />
+            <TextField label="Country" required fullWidth value={editForm.country} onChange={(e) => setEditForm(p => ({ ...p, country: e.target.value }))} sx={{ '& input': { textTransform: 'capitalize' } }} />
             <FormControlLabel
               control={<Checkbox checked={editForm.isActive} onChange={(e) => setEditForm(p => ({ ...p, isActive: e.target.checked }))} sx={{ color: '#ec4899', '&.Mui-checked': { color: '#ec4899' } }} />}
               label="Active"
@@ -205,8 +207,8 @@ export default function GymDetailPage() {
       <AppModal open={showBranchModal} onClose={() => setShowBranchModal(false)} title="Add Branch" maxWidth="sm">
         <form onSubmit={handleCreateBranch}>
           <Stack spacing={2.5} sx={{ mt: 1, mb: 1 }}>
-            <TextField label="Branch Name" required fullWidth value={branchForm.name} onChange={(e) => setBranchForm(p => ({ ...p, name: e.target.value }))} />
-            <TextField label="Address" fullWidth value={branchForm.address} onChange={(e) => setBranchForm(p => ({ ...p, address: e.target.value }))} />
+            <TextField label="Branch Name" required fullWidth value={branchForm.name} onChange={(e) => setBranchForm(p => ({ ...p, name: e.target.value }))} sx={{ '& input': { textTransform: 'capitalize' } }} />
+            <TextField label="Address" fullWidth value={branchForm.address} onChange={(e) => setBranchForm(p => ({ ...p, address: e.target.value }))} sx={{ '& input': { textTransform: 'capitalize' } }} />
             <TextField label="Phone Number" fullWidth value={branchForm.phoneNumber} onChange={(e) => setBranchForm(p => ({ ...p, phoneNumber: e.target.value }))} />
           </Stack>
           <Stack direction="row" spacing={1.5} sx={{ mt: 2, mb: 1 }}>

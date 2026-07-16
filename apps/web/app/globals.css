@@ -11,6 +11,14 @@
     background: #f8fafc; /* almost white */
     min-height: 100vh;
   }
+
+  tr {
+    text-transform: capitalize;
+  }
+
+  input[type="text"] {
+    text-transform: capitalize;
+  }
 }
 
 @layer utilities {

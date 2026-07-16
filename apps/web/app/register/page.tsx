@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import api from '../../lib/api';
+import { Logo } from '../../components/ui/Logo';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -63,22 +64,19 @@ export default function RegisterPage() {
       <div className="relative w-full max-w-md">
         {/* Branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 glass-strong glow-pink">
-            <span className="text-3xl">🌸</span>
-          </div>
-          <h1
-            className="text-4xl font-bold text-gradient"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            FitTitans
-          </h1>
+          <Logo
+            containerClassName="flex flex-col items-center justify-center"
+            iconWrapperClassName="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 glass-strong glow-pink"
+            icon={<span className="text-3xl">🌸</span>}
+            textClassName="text-4xl font-bold text-gradient"
+          />
           <p className="text-slate-500 mt-1 text-sm tracking-wide">Management Dashboard</p>
         </div>
 
         {/* Glass Card */}
         <div className="glass-strong rounded-3xl p-8 shadow-2xl glow-purple">
           <h2 className="text-xl font-semibold text-slate-900 mb-1">Create your account ✨</h2>
-          <p className="text-slate-500 text-sm mb-6">Get started with GymArch today</p>
+          <p className="text-slate-500 text-sm mb-6">Get started with FitTitans today</p>
 
           {error && (
             <div className="bg-rose-500/10 border border-rose-400/30 text-rose-300 rounded-2xl px-4 py-3 text-sm mb-5">

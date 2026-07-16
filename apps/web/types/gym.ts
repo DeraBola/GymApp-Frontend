@@ -20,6 +20,7 @@ export interface GymDetail {
   isActive: boolean;
   createdAt: string;
   members: GymMember[];
+  branches: Branch[];
 }
 
 export interface GymMember {

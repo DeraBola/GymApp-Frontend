@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { ConfirmModal } from '@repo/ui';
 import { navLinks } from '../../data/navigation';
+import { Logo } from '../ui/Logo';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -20,16 +21,9 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   const sidebarContent = (
     <aside className="flex flex-col h-full w-64 bg-white border-r border-slate-200">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-200">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-pink-500/40">
-          🌸
-        </div>
-        <div>
-          <p className="font-bold text-sm leading-tight text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>
-            Fit Titans
-          </p>
-          <p className="text-slate-500 text-xs">Management</p>
-        </div>
+      <div className="px-6 py-5 border-b border-slate-200">
+        <Logo />
+        <p className="text-slate-500 text-xs ml-[3.25rem] -mt-1">Management</p>
       </div>
 
       {/* Navigation */}
@@ -106,7 +100,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={() => { logout(); setShowLogoutConfirm(false); }}
         title="Log out?"
-        message="Are you sure you want to log out of GymArch?"
+        message="Are you sure you want to log out of FitTitans?"
         confirmLabel="Yes, Log Out"
         confirmColor="warning"
       />
