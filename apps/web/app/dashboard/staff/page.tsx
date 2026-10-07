@@ -16,7 +16,6 @@ const config: GymResourceConfig<Staff> = {
   deleteUrl: (row) => `/staffs/${row.staffId}`,
   getId: (row) => row.staffId,
   permission: Permissions.ManageStaffs,
-  paged: false,
   fields: [
     { name: 'firstName', label: 'First Name', required: true },
     { name: 'lastName', label: 'Last Name', required: true },

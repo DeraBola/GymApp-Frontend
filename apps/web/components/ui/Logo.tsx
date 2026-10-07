@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import { APP_NAME } from '../../lib/brand';
 
 export interface LogoProps {
   appName?: string;
@@ -12,7 +13,7 @@ export interface LogoProps {
 }
 
 export function Logo({
-  appName = 'FitTitans',
+  appName = APP_NAME,
   imageUrl,
   icon = '🌸',
   iconWrapperClassName = 'w-9 h-9 rounded-xl flex items-center justify-center text-lg bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-pink-500/40',

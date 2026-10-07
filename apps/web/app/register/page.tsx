@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import api from '../../lib/api';
 import { Logo } from '../../components/ui/Logo';
+import { APP_NAME } from '../../lib/brand';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -76,7 +77,7 @@ export default function RegisterPage() {
         {/* Glass Card */}
         <div className="glass-strong rounded-3xl p-8 shadow-2xl glow-purple">
           <h2 className="text-xl font-semibold text-slate-900 mb-1">Create your account ✨</h2>
-          <p className="text-slate-500 text-sm mb-6">Get started with FitTitans today</p>
+          <p className="text-slate-500 text-sm mb-6">Get started with {APP_NAME} today</p>
 
           {error && (
             <div className="bg-rose-500/10 border border-rose-400/30 text-rose-300 rounded-2xl px-4 py-3 text-sm mb-5">

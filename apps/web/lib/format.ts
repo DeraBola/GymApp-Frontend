@@ -53,6 +53,6 @@ export const loadInventoryOptions = async (gymId: string): Promise<SelectOption[
 };
 
 export const loadStaffOptions = async (gymId: string): Promise<SelectOption[]> => {
-  const res = await api.get(`/staffs/gym/${gymId}`);
+  const res = await api.get(`/staffs/gym/${gymId}`, { params: ALL });
   return extractPagedItems<Staff>(res).map((s) => ({ value: s.staffId, label: `${s.firstName} ${s.lastName}` }));
 };

@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../lib/api';
-import { extractPagedItems, getErrorMessage } from '../../../lib/apiHelpers';
+import { extractPagedResult, getErrorMessage } from '../../../lib/apiHelpers';
 import { useGym } from '../../../context/GymContext';
 import { toast } from 'react-toastify';
 import { AppTable, AppModal, ConfirmModal, Column } from '@repo/ui';
-import { Button, TextField, Box, Chip, Typography, Stack } from '@mui/material';
+import { Button, TextField, Box, Chip, Typography, Stack, TablePagination } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { Gym, CreateGymForm } from '../../../types/gym';
 
@@ -22,26 +22,31 @@ export default function GymsPage() {
 
   const [gyms, setGyms] = useState<Gym[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateGymForm>(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchGyms = async () => {
+  const fetchGyms = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await api.get('/gyms/All', { params: { page: 1, pageSize: 100 } });
-      const items = extractPagedItems<Gym>(res);
-      setGyms(items);
+      const res = await api.get('/gyms/All', { params: { page: page + 1, pageSize } });
+      const result = extractPagedResult<Gym>(res);
+      setGyms(result?.items ?? []);
+      setTotalCount(result?.totalCount ?? 0);
     } catch (err) {
       toast.error(getErrorMessage(err, 'Failed to load gyms.'));
       setGyms([]);
+      setTotalCount(0);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, pageSize]);
 
-  useEffect(() => { fetchGyms(); }, []);
+  useEffect(() => { fetchGyms(); }, [fetchGyms]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,14 +158,27 @@ export default function GymsPage() {
         )}
       </Box>
 
-      <AppTable
-        columns={columns}
-        rows={gyms}
-        isLoading={isLoading}
-        emptyIcon="🏢"
-        emptyTitle="No gyms found"
-        emptySubtitle={isSuperAdmin ? "Everything else (members, staff, plans) belongs to a gym, so start with 'Add Gym'." : ''}
-      />
+      <Box>
+        <AppTable
+          columns={columns}
+          rows={gyms}
+          isLoading={isLoading}
+          emptyIcon="🏢"
+          emptyTitle="No gyms found"
+          emptySubtitle={isSuperAdmin ? "Everything else (members, staff, plans) belongs to a gym, so start with 'Add Gym'." : ''}
+        />
+        {totalCount > 0 && (
+          <TablePagination
+            component="div"
+            count={totalCount}
+            page={page}
+            onPageChange={(_, p) => setPage(p)}
+            rowsPerPage={pageSize}
+            onRowsPerPageChange={(e) => { setPageSize(parseInt(e.target.value, 10)); setPage(0); }}
+            rowsPerPageOptions={[10, 25, 50]}
+          />
+        )}
+      </Box>
 
       {/* Create Gym Modal */}
       <AppModal

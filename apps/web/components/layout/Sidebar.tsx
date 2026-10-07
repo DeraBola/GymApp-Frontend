@@ -8,6 +8,7 @@ import { ConfirmModal } from '@repo/ui';
 import { navSections } from '../../data/navigation';
 import { Logo } from '../ui/Logo';
 import { TenantSwitcher } from './TenantSwitcher';
+import { APP_NAME } from '../../lib/brand';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -116,7 +117,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={() => { logout(); setShowLogoutConfirm(false); }}
         title="Log out?"
-        message="Are you sure you want to log out of FitTitans?"
+        message={`Are you sure you want to log out of ${APP_NAME}?`}
         confirmLabel="Yes, Log Out"
         confirmColor="warning"
       />

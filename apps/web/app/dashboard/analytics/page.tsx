@@ -10,6 +10,7 @@ import { formatMoney } from '../../../lib/format';
 import { StatCard } from '../../../types/analytics';
 import { defaultStats, quickActions } from '../../../data/analytics';
 import { GymContextChip } from '../../../components/ui/GymContextChip';
+import { APP_NAME } from '../../../lib/brand';
 
 const countOf = async (url: string) => {
   const res = await api.get(url, { params: { page: 1, pageSize: 1 } });
@@ -88,7 +89,7 @@ export default function DashboardPage() {
       {!isLoading && !setupComplete && (isAdmin || can('ManageUsers')) && (
         <div className="rounded-2xl p-6 bg-white border border-pink-500/20">
           <h2 className="text-base font-semibold text-slate-900">Get your gym ready</h2>
-          <p className="text-slate-500 text-sm mt-1 mb-4">Finish these steps and FitTitans is ready for day-to-day use.</p>
+          <p className="text-slate-500 text-sm mt-1 mb-4">Finish these steps and {APP_NAME} is ready for day-to-day use.</p>
           <ol className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
             {setupSteps.map((step, i) => (
               <li key={step.label}>

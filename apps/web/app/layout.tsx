@@ -4,10 +4,11 @@ import 'react-toastify/dist/ReactToastify.css';
 import MuiProvider from '../components/providers/MuiProvider';
 import "./globals.css";
 import { Metadata } from 'next';
+import { APP_NAME } from '../lib/brand';
 
 export const metadata: Metadata = {
-  title: 'FitTitans',
-  description: 'Management Dashboard for FitTitans',
+  title: APP_NAME,
+  description: `${APP_NAME}: gym management for every location`,
 };
 
 export default function RootLayout({
