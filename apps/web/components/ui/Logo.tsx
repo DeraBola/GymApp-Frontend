@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 export interface LogoProps {
   appName?: string;
@@ -23,12 +24,10 @@ export function Logo({
     <div className={containerClassName}>
       <div className={iconWrapperClassName}>
         {imageUrl ? (
-          <img 
-            src={imageUrl} 
-            alt={appName} 
-            className="w-full h-full object-cover" 
-            style={{ borderRadius: 'inherit' }} 
-          />
+          <span className="relative block w-full h-full overflow-hidden" style={{ borderRadius: 'inherit' }}>
+            {/* unoptimized: logos can come from any host, so skip Next's image domain allow-list */}
+            <Image src={imageUrl} alt={appName} fill unoptimized sizes="64px" className="object-cover" />
+          </span>
         ) : (
           icon
         )}

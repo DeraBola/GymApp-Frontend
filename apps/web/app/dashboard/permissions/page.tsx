@@ -26,7 +26,7 @@ export default function PermissionsPage() {
     setIsLoading(true);
     try {
       const res = await api.get('/permissions', { params: { page: 1, pageSize: 100 } });
-      const items = extractPagedItems(res);
+      const items = extractPagedItems<Permission>(res);
       setPermissions(items);
     } catch {
       toast.error('Failed to load permissions.');

@@ -44,7 +44,7 @@ export default function PaymentsPage() {
     setIsLoading(true);
     try {
       const res = await api.get(`/payments/gym/${gymId}`, { params: { page: 1, pageSize: 100 } });
-      const items = extractPagedItems(res);
+      const items = extractPagedItems<Payment>(res);
       setPayments(items);
     } catch (err) {
       toast.error(getErrorMessage(err, 'Failed to load payments.'));
@@ -58,7 +58,7 @@ export default function PaymentsPage() {
     if (!gymId) { setMembers([]); return; }
     try {
       const res = await api.get(`/members/all/${gymId}`, { params: { page: 1, pageSize: 100 } });
-      const items = extractPagedItems(res);
+      const items = extractPagedItems<Member>(res);
       setMembers(items);
     } catch { setMembers([]); }
   };

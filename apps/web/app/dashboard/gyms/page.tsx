@@ -31,7 +31,7 @@ export default function GymsPage() {
     setIsLoading(true);
     try {
       const res = await api.get('/gyms/All', { params: { page: 1, pageSize: 100 } });
-      const items = extractPagedItems(res);
+      const items = extractPagedItems<Gym>(res);
       setGyms(items);
     } catch (err) {
       toast.error(getErrorMessage(err, 'Failed to load gyms.'));
