@@ -1,9 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
 import api from '../lib/api';
+import { getTokenPermissions, isSuperAdminRole } from '../lib/auth';
 
 interface User {
   id: string;
@@ -11,7 +11,9 @@ interface User {
   firstName: string;
   lastName: string;
   role: string;
-  gymId?: string;
+  /** The gym (tenant) this user belongs to; Super Admins have none */
+  gymId?: string | null;
+  isSuperAdmin?: boolean;
 }
 
 interface AuthContextType {
@@ -20,6 +22,12 @@ interface AuthContextType {
   login: (userData: User & { token: string }) => void;
   logout: () => Promise<void>;
   isLoading: boolean;
+  /** Permission names carried in the JWT */
+  permissions: string[];
+  /** True for Super Admin, who the backend lets through every permission check across all gyms */
+  isAdmin: boolean;
+  /** Whether the current user may perform actions guarded by this permission */
+  can: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,7 +66,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       firstName: userData.firstName,
       lastName: userData.lastName,
       role: userData.role,
-      gymId: userData.gymId
+      gymId: userData.gymId,
+      isSuperAdmin: userData.isSuperAdmin
     };
     
     localStorage.setItem('user', JSON.stringify(userObj));
@@ -83,8 +92,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push('/login');
   };
 
+  const permissions = useMemo(() => getTokenPermissions(token), [token]);
+  const isAdmin = !!user?.isSuperAdmin || isSuperAdminRole(user?.role);
+  const can = useCallback(
+    (permission: string) => isAdmin || permissions.includes(permission),
+    [isAdmin, permissions]
+  );
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isLoading, permissions, isAdmin, can }}>
       {children}
     </AuthContext.Provider>
   );

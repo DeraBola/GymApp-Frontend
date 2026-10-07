@@ -5,8 +5,9 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { ConfirmModal } from '@repo/ui';
-import { navLinks } from '../../data/navigation';
+import { navSections } from '../../data/navigation';
 import { Logo } from '../ui/Logo';
+import { TenantSwitcher } from './TenantSwitcher';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -15,7 +16,7 @@ interface SidebarProps {
 
 export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, can, isAdmin } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const sidebarContent = (
@@ -26,10 +27,21 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         <p className="text-slate-500 text-xs ml-[3.25rem] -mt-1">Management</p>
       </div>
 
+      <TenantSwitcher />
+
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest px-3 mb-3">Menu</p>
-        {navLinks.map((link) => {
+      <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        {navSections.map((section) => {
+          const links = section.links
+            .filter((link) => !link.permission || can(link.permission))
+            .filter((link) => (link.superAdminOnly ? isAdmin : link.gymUserOnly ? !isAdmin && !!user?.gymId : true))
+            .map((link) => (link.gymUserOnly && link.href === '/dashboard/gyms/mine' ? { ...link, href: `/dashboard/gyms/${user?.gymId}` } : link));
+          if (links.length === 0) return null;
+          return (
+            <div key={section.title} className="mb-4">
+              <p className="text-[0.65rem] font-semibold text-slate-400 uppercase tracking-widest px-3 mb-2">{section.title}</p>
+              <div className="space-y-1">
+        {links.map((link) => {
           const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
           return (
             <Link
@@ -45,6 +57,10 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               <span className="text-base">{link.icon}</span>
               {link.label}
             </Link>
+          );
+        })}
+              </div>
+            </div>
           );
         })}
       </nav>

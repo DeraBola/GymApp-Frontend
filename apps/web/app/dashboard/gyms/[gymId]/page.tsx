@@ -5,7 +5,9 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../../context/AuthContext';
 import api from '../../../../lib/api';
-import { extractData } from '../../../../lib/apiHelpers';
+import { extractData, getErrorMessage } from '../../../../lib/apiHelpers';
+import { Permissions } from '../../../../lib/auth';
+import { useGym } from '../../../../context/GymContext';
 import { toast } from 'react-toastify';
 import { AppTable, AppModal, Column } from '@repo/ui';
 import {
@@ -13,12 +15,15 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
-import { Gym, GymDetail, Branch, EditGymForm, BranchForm } from '../../../../types/gym';
+import { GymDetail, Branch, EditGymForm, BranchForm } from '../../../../types/gym';
 
 export default function GymDetailPage() {
   const { gymId } = useParams<{ gymId: string }>();
-  const { user } = useAuth();
-  const isSuperAdmin = user?.role === 'SuperAdmin' || user?.role === 'Admin';
+  const { can } = useAuth();
+  const { gymId: activeGymId, setGymId, refreshGyms, canSwitchGym } = useGym();
+  const isSuperAdmin = can(Permissions.ManageGyms);
+  // The backend guards gym updates with ManageUsers.
+  const canEdit = can(Permissions.ManageUsers);
 
   const [gym, setGym] = useState<GymDetail | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -63,11 +68,12 @@ export default function GymDetailPage() {
     setIsSubmitting(true);
     try {
       await api.put(`/gym/${gymId}`, editForm);
-      toast.success('Gym updated successfully!');
+      toast.success('Gym updated.');
       await fetchGym();
+      refreshGyms();
       setShowEditModal(false);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || err.response?.data?.detail || 'Failed to update gym.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to update gym.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -82,8 +88,8 @@ export default function GymDetailPage() {
       setShowBranchModal(false);
       setBranchForm({ name: '', address: '', phoneNumber: '' });
       await fetchGym();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || err.response?.data?.detail || 'Failed to create branch.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to create branch.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -128,7 +134,7 @@ export default function GymDetailPage() {
 
       {/* Gym Info Card */}
       <Box sx={{ bgcolor: 'white', border: '1px solid #e2e8f0', borderRadius: 3, p: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ width: 56, height: 56, bgcolor: '#fdf4ff', border: '1px solid #f3e8ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
               🏢
@@ -143,11 +149,20 @@ export default function GymDetailPage() {
               />
             </Box>
           </Box>
-          {isSuperAdmin && (
-            <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setShowEditModal(true)} sx={{ borderColor: '#e2e8f0', color: 'text.secondary', fontSize: '0.8rem' }}>
-              Edit
-            </Button>
-          )}
+          <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {!canSwitchGym ? null : activeGymId !== gymId ? (
+              <Button variant="outlined" onClick={() => { setGymId(gymId); toast.success(`Now managing ${gym.name}.`); }} sx={{ borderColor: '#e2e8f0', color: 'text.secondary', fontSize: '0.8rem' }}>
+                Manage this gym
+              </Button>
+            ) : (
+              <Chip label="Currently managing" size="small" sx={{ bgcolor: '#fdf4ff', color: '#9333ea', border: '1px solid #f3e8ff', alignSelf: 'center' }} />
+            )}
+            {canEdit && (
+              <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setShowEditModal(true)} sx={{ borderColor: '#e2e8f0', color: 'text.secondary', fontSize: '0.8rem' }}>
+                Edit
+              </Button>
+            )}
+          </Stack>
         </Box>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(3, 1fr)' }, gap: 2, mt: 2, pt: 2, borderTop: '1px solid #f1f5f9' }}>
           {[

@@ -2,15 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
-import { extractPagedItems, extractData } from '../../../lib/apiHelpers';
-import { useAuth } from '../../../context/AuthContext';
+import { extractPagedItems, extractData, getErrorMessage } from '../../../lib/apiHelpers';
+import { useGym } from '../../../context/GymContext';
+import { GymContextChip } from '../../../components/ui/GymContextChip';
+import { NoGymNotice } from '../../../components/ui/NoGymNotice';
+import { formatDate, formatMoney } from '../../../lib/format';
 import { toast } from 'react-toastify';
 import { AppTable, AppModal, ConfirmModal, Column } from '@repo/ui';
 import {
-  Button, TextField, Box, Chip, Typography, Stack, Alert, InputAdornment,
+  Button, TextField, Box, Chip, Typography, Stack, Alert,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { Payment, PaymentForm } from '../../../types/payment';
+import { Payment, PaymentForm, InitializePaymentResponse } from '../../../types/payment';
 import { Member } from '../../../types/member';
 
 const statusChip = (status: string) => {
@@ -25,7 +28,7 @@ const statusChip = (status: string) => {
 };
 
 export default function PaymentsPage() {
-  const { user } = useAuth();
+  const { gymId, isLoadingGyms } = useGym();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,16 +37,17 @@ export default function PaymentsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState<PaymentForm>({ memberId: '', email: '', amount: '' });
+  const [checkout, setCheckout] = useState<InitializePaymentResponse | null>(null);
 
   const fetchPayments = async () => {
-    if (!user?.gymId) { setPayments([]); setIsLoading(false); return; }
+    if (!gymId) { setPayments([]); setIsLoading(false); return; }
     setIsLoading(true);
     try {
-      const res = await api.get(`/payments/gym/${user.gymId}`);
+      const res = await api.get(`/payments/gym/${gymId}`, { params: { page: 1, pageSize: 100 } });
       const items = extractPagedItems(res);
       setPayments(items);
-    } catch {
-      toast.error('Failed to load payments.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to load payments.'));
       setPayments([]);
     } finally {
       setIsLoading(false);
@@ -51,33 +55,36 @@ export default function PaymentsPage() {
   };
 
   const fetchMembers = async () => {
-    if (!user?.gymId) return;
+    if (!gymId) { setMembers([]); return; }
     try {
-      const res = await api.get(`/members/all/${user.gymId}`);
+      const res = await api.get(`/members/all/${gymId}`, { params: { page: 1, pageSize: 100 } });
       const items = extractPagedItems(res);
       setMembers(items);
     } catch { setMembers([]); }
   };
 
-  useEffect(() => { fetchPayments(); fetchMembers(); }, [user?.gymId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchPayments(); fetchMembers(); }, [gymId]);
 
   const handleInitPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.gymId) return;
+    if (!gymId) return;
     if (!form.memberId) { toast.error('Please select a valid member.'); return; }
     setIsSubmitting(true);
     try {
-      await api.post(`/payments/initialize/${user.gymId}`, {
+      const member = members.find((m) => m.id === form.memberId);
+      const res = await api.post(`/payments/initialize/${gymId}`, {
         memberId: form.memberId,
-        email: form.email,
+        email: form.email || member?.email || '',
         amount: parseFloat(form.amount),
       });
-      toast.success('Payment initialized successfully!');
+      toast.success('Payment started. Share the checkout link with the member.');
+      setCheckout(extractData<InitializePaymentResponse>(res));
       setShowInitModal(false);
       setForm({ memberId: '', email: '', amount: '' });
       fetchPayments();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || err.response?.data?.detail || 'Failed to initialize payment.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to initialize payment.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -88,8 +95,8 @@ export default function PaymentsPage() {
       await api.post(`/payments/verify/${reference}`);
       toast.success('Payment verified successfully!');
       fetchPayments();
-    } catch {
-      toast.error('Failed to verify payment.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to verify payment.'));
     }
   };
 
@@ -98,25 +105,36 @@ export default function PaymentsPage() {
       await api.delete(`/payments/${id}`);
       toast.success('Payment deleted successfully.');
       fetchPayments();
-    } catch {
-      toast.error('Failed to delete payment.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to delete payment.'));
     } finally {
       setDeleteId(null);
     }
   };
 
+  const memberName = (id: string) => {
+    const m = members.find((x) => x.id === id);
+    return m ? `${m.firstName} ${m.lastName}` : '—';
+  };
+
   const filtered = payments.filter(
     (p) =>
       p.transactionReference?.toLowerCase().includes(search.toLowerCase()) ||
-      p.status?.toLowerCase().includes(search.toLowerCase())
+      p.status?.toLowerCase().includes(search.toLowerCase()) ||
+      memberName(p.memberId).toLowerCase().includes(search.toLowerCase())
   );
 
   const columns: Column<Payment>[] = [
     {
+      key: 'memberId',
+      label: 'Member',
+      render: (row) => <Typography variant="body2" sx={{ fontWeight: 600 }} color="text.primary">{memberName(row.memberId)}</Typography>,
+    },
+    {
       key: 'transactionReference',
       label: 'Reference',
       render: (row) => (
-        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>
+        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.78rem', textTransform: 'none' }}>
           {row.transactionReference}
         </Typography>
       ),
@@ -126,14 +144,14 @@ export default function PaymentsPage() {
       label: 'Amount',
       render: (row) => (
         <Typography sx={{ fontWeight: 700 }} color="text.primary" variant="body2">
-          ${row.amount?.toFixed(2)}
+          {formatMoney(row.amount)}
         </Typography>
       ),
     },
     {
       key: 'paymentDate',
       label: 'Date',
-      render: (row) => new Date(row.paymentDate).toLocaleDateString(),
+      render: (row) => formatDate(row.paymentDate),
     },
     {
       key: 'status',
@@ -173,28 +191,43 @@ export default function PaymentsPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700 }} color="text.primary">Payments</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {user?.gymId ? `${filtered.length} payment(s)` : 'Select a gym to view its payments'}
+            Membership payments collected through Paystack
           </Typography>
         </Box>
-        {user?.gymId && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowInitModal(true)}>
-            Initialize Payment
-          </Button>
-        )}
+        <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+          <GymContextChip />
+          {gymId && (
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowInitModal(true)}>
+              Request Payment
+            </Button>
+          )}
+        </Stack>
       </Box>
 
-      {!user?.gymId && (
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Payment listing requires a gym to be selected.
+      {!gymId && !isLoadingGyms && <NoGymNotice what="payments" />}
+
+      {checkout?.authorizationUrl && (
+        <Alert
+          severity="success"
+          sx={{ borderRadius: 2 }}
+          onClose={() => setCheckout(null)}
+          action={
+            <Stack direction="row" sx={{ gap: 1 }}>
+              <Button size="small" color="inherit" onClick={() => { navigator.clipboard?.writeText(checkout.authorizationUrl); toast.info('Checkout link copied.'); }}>Copy link</Button>
+              <Button size="small" color="inherit" href={checkout.authorizationUrl} target="_blank" rel="noopener noreferrer">Open checkout</Button>
+            </Stack>
+          }
+        >
+          Payment <strong>{checkout.reference}</strong> is waiting for the member to pay. Once they have, select <strong>Verify</strong> on it below.
         </Alert>
       )}
 
       <TextField
-        placeholder="Search by reference or status..."
+        placeholder="Search by member, reference or status..."
         size="small"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
@@ -214,8 +247,8 @@ export default function PaymentsPage() {
       <AppModal
         open={showInitModal}
         onClose={() => { setShowInitModal(false); setForm({ memberId: '', email: '', amount: '' }); }}
-        title="Initialize Payment"
-        subtitle="Create a new payment for a member."
+        title="Request Payment"
+        subtitle="Creates a Paystack checkout link for the member to pay."
         maxWidth="xs"
       >
         <form onSubmit={handleInitPayment}>
@@ -226,7 +259,11 @@ export default function PaymentsPage() {
               required
               fullWidth
               value={form.memberId}
-              onChange={(e) => setForm(p => ({ ...p, memberId: e.target.value }))}
+              onChange={(e) => {
+                const m = members.find((x) => x.id === e.target.value);
+                setForm(p => ({ ...p, memberId: e.target.value, email: m?.email ?? '' }));
+              }}
+              helperText={members.length === 0 ? 'Add members to this gym first.' : undefined}
               slotProps={{ select: { native: true } }}
             >
               <option value="" disabled />
@@ -244,7 +281,6 @@ export default function PaymentsPage() {
               value={form.amount}
               onChange={(e) => setForm(p => ({ ...p, amount: e.target.value }))}
               slotProps={{
-                input: { startAdornment: <InputAdornment position="start">$</InputAdornment> },
                 htmlInput: { step: '0.01', min: '0.01' },
               }}
             />
@@ -254,7 +290,7 @@ export default function PaymentsPage() {
               Cancel
             </Button>
             <Button fullWidth variant="contained" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Initializing...' : 'Initialize'}
+              {isSubmitting ? 'Creating link...' : 'Create Checkout Link'}
             </Button>
           </Stack>
         </form>

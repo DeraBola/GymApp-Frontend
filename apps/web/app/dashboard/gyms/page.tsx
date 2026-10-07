@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../lib/api';
-import { extractPagedItems } from '../../../lib/apiHelpers';
+import { extractPagedItems, getErrorMessage } from '../../../lib/apiHelpers';
+import { useGym } from '../../../context/GymContext';
 import { toast } from 'react-toastify';
 import { AppTable, AppModal, ConfirmModal, Column } from '@repo/ui';
 import { Button, TextField, Box, Chip, Typography, Stack } from '@mui/material';
@@ -14,8 +15,10 @@ import { Gym, CreateGymForm } from '../../../types/gym';
 const emptyForm: CreateGymForm = { name: '', address: '', email: '', phoneNumber: '', country: '' };
 
 export default function GymsPage() {
-  const { user } = useAuth();
-  const isSuperAdmin = user?.role === 'SuperAdmin' || user?.role === 'Admin';
+  const { isAdmin } = useAuth();
+  const { refreshGyms } = useGym();
+  // Creating and deleting gyms (tenants) is a Super Admin job.
+  const isSuperAdmin = isAdmin;
 
   const [gyms, setGyms] = useState<Gym[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,11 +30,11 @@ export default function GymsPage() {
   const fetchGyms = async () => {
     setIsLoading(true);
     try {
-      const res = await api.get('/gyms/All');
+      const res = await api.get('/gyms/All', { params: { page: 1, pageSize: 100 } });
       const items = extractPagedItems(res);
       setGyms(items);
-    } catch {
-      toast.error('Failed to load gyms.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to load gyms.'));
       setGyms([]);
     } finally {
       setIsLoading(false);
@@ -45,12 +48,13 @@ export default function GymsPage() {
     setIsSubmitting(true);
     try {
       await api.post('/gym/register', form);
-      toast.success('Gym created successfully!');
+      toast.success('Gym created. Open it to add branches, then add staff and members.');
       setShowCreateModal(false);
       setForm(emptyForm);
       fetchGyms();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || err.response?.data?.detail || 'Failed to create gym.');
+      refreshGyms();
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to create gym.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -59,10 +63,11 @@ export default function GymsPage() {
   const handleDelete = async (id: string) => {
     try {
       await api.delete(`/gym/${id}`);
-      toast.success('Gym deleted successfully.');
+      toast.success('Gym deleted.');
       fetchGyms();
-    } catch {
-      toast.error('Failed to delete gym.');
+      refreshGyms();
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to delete gym.'));
     } finally {
       setDeleteId(null);
     }
@@ -80,7 +85,7 @@ export default function GymsPage() {
     },
     { key: 'address', label: 'Address' },
     { key: 'country', label: 'Country' },
-    { key: 'email', label: 'Email' },
+    { key: 'email', label: 'Email', render: (row) => <span className="normal-case">{row.email}</span> },
     { key: 'phoneNumber', label: 'Phone' },
     {
       key: 'isActive',
@@ -132,7 +137,7 @@ export default function GymsPage() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700 }} color="text.primary">Gyms</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Manage all gym locations</Typography>
@@ -154,7 +159,7 @@ export default function GymsPage() {
         isLoading={isLoading}
         emptyIcon="🏢"
         emptyTitle="No gyms found"
-        emptySubtitle={isSuperAdmin ? 'Create one to get started.' : ''}
+        emptySubtitle={isSuperAdmin ? "Everything else (members, staff, plans) belongs to a gym, so start with 'Add Gym'." : ''}
       />
 
       {/* Create Gym Modal */}
@@ -190,7 +195,7 @@ export default function GymsPage() {
         onClose={() => setDeleteId(null)}
         onConfirm={() => handleDelete(deleteId!)}
         title="Delete Gym?"
-        message="This action cannot be undone. All associated data will be removed."
+        message="This removes the gym and everything linked to it: branches, members, staff, plans and records. It can't be undone."
         confirmLabel="Delete"
         confirmColor="error"
       />

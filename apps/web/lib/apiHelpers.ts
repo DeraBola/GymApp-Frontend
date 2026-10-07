@@ -29,3 +29,16 @@ export function extractPagedResult<T = any>(response: any): PagedResult<T> {
 export function extractMessage(response: any): string {
   return response?.data?.message || '';
 }
+
+/**
+ * Pull a readable message out of a failed request, including the first
+ * validation error the backend returns.
+ */
+export function getErrorMessage(err: unknown, fallback: string): string {
+  const data = (err as { response?: { data?: { message?: string; detail?: string; errors?: { errors?: { description?: string; message?: string }[] } } } })?.response?.data;
+  const validation = data?.errors?.errors;
+  if (Array.isArray(validation) && validation.length > 0) {
+    return validation[0]?.description || validation[0]?.message || data?.message || fallback;
+  }
+  return data?.message || data?.detail || fallback;
+}

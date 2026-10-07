@@ -4,27 +4,28 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { toast } from 'react-toastify';
 import api from '../../../lib/api';
-import { extractPagedItems } from '../../../lib/apiHelpers';
+import { extractPagedItems, getErrorMessage } from '../../../lib/apiHelpers';
 import { AppTable, AppModal, ConfirmModal, Column } from '@repo/ui';
 import { Button, TextField, Box, Typography, Stack } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { Permission } from '../../../types/permission';
 
 export default function PermissionsPage() {
-  const { user } = useAuth();
-  const isSuperAdmin = user?.role === 'SuperAdmin' || user?.role === 'Admin';
+  const { isAdmin } = useAuth();
+  const isSuperAdmin = isAdmin;
 
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Permission | null>(null);
   const [form, setForm] = useState({ name: '', description: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchPermissions = async () => {
     setIsLoading(true);
     try {
-      const res = await api.get('/permissions');
+      const res = await api.get('/permissions', { params: { page: 1, pageSize: 100 } });
       const items = extractPagedItems(res);
       setPermissions(items);
     } catch {
@@ -41,15 +42,21 @@ export default function PermissionsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await api.post('/permission', {
-        permissions: [{ name: form.name, description: form.description || null }],
-      });
-      toast.success('Permission created successfully!');
+      if (editing) {
+        await api.put(`/permissions/${editing.id}`, { name: form.name.trim(), description: form.description.trim() || null });
+        toast.success('Permission updated.');
+      } else {
+        await api.post('/permission', {
+          permissions: [{ name: form.name.trim(), description: form.description.trim() || null }],
+        });
+        toast.success('Permission created. Add it to a role to grant it.');
+      }
+      setEditing(null);
       setShowModal(false);
       setForm({ name: '', description: '' });
       fetchPermissions();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || err.response?.data?.detail || 'Failed to create permission.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to save permission.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -60,8 +67,8 @@ export default function PermissionsPage() {
       await api.delete(`/permissions/${id}`);
       toast.success('Permission deleted successfully.');
       fetchPermissions();
-    } catch {
-      toast.error('Failed to delete permission.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to delete permission.'));
     } finally {
       setDeleteId(null);
     }
@@ -69,16 +76,21 @@ export default function PermissionsPage() {
 
   const columns: Column<Permission>[] = [
     { key: 'name', label: 'Name', render: (row) => <Typography sx={{ fontWeight: 600 }} variant="body2" color="text.primary">{row.name}</Typography> },
-    { key: 'description', label: 'Description' },
+    { key: 'description', label: 'Description', render: (row) => row.description || <span className="text-slate-400">—</span> },
     ...(isSuperAdmin
       ? [{
           key: 'actions',
           label: 'Actions',
           align: 'right' as const,
           render: (row: Permission) => (
-            <Button size="small" color="error" variant="outlined" sx={{ fontSize: '0.75rem', px: 1.5 }} onClick={() => setDeleteId(row.id)}>
-              Delete
-            </Button>
+            <Stack direction="row" sx={{ gap: 1, justifyContent: 'flex-end' }}>
+              <Button size="small" variant="outlined" sx={{ fontSize: '0.75rem', px: 1.5, borderColor: '#e2e8f0', color: 'text.secondary' }} onClick={() => { setEditing(row); setForm({ name: row.name, description: row.description ?? '' }); setShowModal(true); }}>
+                Edit
+              </Button>
+              <Button size="small" color="error" variant="outlined" sx={{ fontSize: '0.75rem', px: 1.5 }} onClick={() => setDeleteId(row.id)}>
+                Delete
+              </Button>
+            </Stack>
           ),
         }]
       : []),
@@ -89,10 +101,10 @@ export default function PermissionsPage() {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700 }} color="text.primary">Permissions</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Manage system permissions and access levels</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Individual actions a role can be allowed to do. Names must match what the backend checks.</Typography>
         </Box>
         {isSuperAdmin && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowModal(true)}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setEditing(null); setForm({ name: '', description: '' }); setShowModal(true); }}>
             Add Permission
           </Button>
         )}
@@ -105,12 +117,12 @@ export default function PermissionsPage() {
         rows={permissions}
         isLoading={isLoading}
         emptyIcon="🔑"
-        emptyTitle="Permissions are managed on the backend."
-        emptySubtitle="Use 'Add Permission' to create one via the API."
+        emptyTitle="No permissions yet."
+        emptySubtitle="The backend checks ManageGyms, ManageStaffs, ManageUsers, ManageRoles and ViewDashboard."
       />
 
       {/* Create Permission Modal */}
-      <AppModal open={showModal} onClose={() => { setShowModal(false); setForm({ name: '', description: '' }); }} title="Create Permission" subtitle="Add a new permission to the system." maxWidth="xs">
+      <AppModal open={showModal} onClose={() => { setShowModal(false); setEditing(null); setForm({ name: '', description: '' }); }} title={editing ? 'Edit Permission' : 'Create Permission'} subtitle={editing ? 'Renaming a permission the backend checks will break access to that feature.' : 'Add a new permission to the system.'} maxWidth="xs">
         <form onSubmit={handleCreate}>
           <Stack spacing={2.5} sx={{ mt: 1, mb: 1 }}>
             <TextField label="Permission Name" required fullWidth value={form.name} onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))} placeholder="e.g. ManageGyms" />
@@ -118,7 +130,7 @@ export default function PermissionsPage() {
           </Stack>
           <Stack direction="row" spacing={1.5} sx={{ mt: 2, mb: 1 }}>
             <Button fullWidth variant="outlined" onClick={() => setShowModal(false)} sx={{ borderColor: '#e2e8f0', color: 'text.secondary' }}>Cancel</Button>
-            <Button fullWidth variant="contained" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating...' : 'Create Permission'}</Button>
+            <Button fullWidth variant="contained" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : editing ? 'Save Changes' : 'Create Permission'}</Button>
           </Stack>
         </form>
       </AppModal>
@@ -129,7 +141,7 @@ export default function PermissionsPage() {
         onClose={() => setDeleteId(null)}
         onConfirm={() => handleDelete(deleteId!)}
         title="Delete Permission?"
-        message="This action cannot be undone. Make sure no roles depend on this."
+        message="Roles that include it will lose this access. This can't be undone."
         confirmLabel="Delete"
         confirmColor="error"
       />
