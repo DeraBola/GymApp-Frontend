@@ -35,8 +35,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         {navSections.map((section) => {
           const links = section.links
             .filter((link) => !link.permission || can(link.permission))
-            .filter((link) => (link.superAdminOnly ? isAdmin : link.gymUserOnly ? !isAdmin && !!user?.gymId : true))
-            .map((link) => (link.gymUserOnly && link.href === '/dashboard/gyms/mine' ? { ...link, href: `/dashboard/gyms/${user?.gymId}` } : link));
+            .filter((link) => !link.superAdminOnly || isAdmin);
           if (links.length === 0) return null;
           return (
             <div key={section.title} className="mb-4">

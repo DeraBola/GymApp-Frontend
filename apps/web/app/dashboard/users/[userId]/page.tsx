@@ -262,12 +262,14 @@ export default function UserDetailPage() {
         <Box sx={card}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }} color="text.primary">Roles & access</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Each role grants a set of permissions. Manage what a role can do on the{' '}
-            <Link href="/dashboard/roles" className="text-pink-600 hover:text-pink-700 no-underline">Roles page</Link>.
+            Each role grants a set of permissions.{' '}
+            {isAdmin
+              ? <>Manage what a role can do on the <Link href="/dashboard/roles" className="text-pink-600 hover:text-pink-700 no-underline">Roles page</Link>.</>
+              : 'Your Super Admin decides what each role can do.'}
           </Typography>
 
           {allRoles.length === 0 ? (
-            <Alert severity="info" sx={{ borderRadius: 2 }}>No roles exist yet. Create one on the Roles page first.</Alert>
+            <Alert severity="info" sx={{ borderRadius: 2 }}>No roles exist yet. {isAdmin ? 'Create one on the Roles page first.' : 'Ask your Super Admin to set some up.'}</Alert>
           ) : (
             <Stack>
               {assignableRoles(allRoles, isAdmin).map((r) => (

@@ -25,7 +25,8 @@ const GymContext = createContext<GymContextType | undefined>(undefined);
 
 /**
  * Tracks which gym (tenant) the dashboard is working in.
- * - Super Admins pick any gym; the choice is remembered between visits.
+ * - Super Admins start with no gym selected and pick one themselves; the
+ *   choice is kept until they sign out.
  * - Everyone else is pinned to the gym on their account. The API enforces
  *   this too, so the UI only mirrors it.
  */
@@ -53,11 +54,8 @@ export function GymProvider({ children }: { children: ReactNode }) {
 
       let stored: string | null = null;
       try { stored = localStorage.getItem(STORAGE_KEY); } catch { /* storage unavailable */ }
-      setGymIdState((current) => {
-        const candidates = [current, stored, ownGymId];
-        const valid = candidates.find((id) => id && items.some((g) => g.id === id));
-        return valid ?? items[0]?.id ?? null;
-      });
+      // No default: only keep a gym the Super Admin chose themselves (and that still exists).
+      setGymIdState((current) => [current, stored].find((id) => id && items.some((g) => g.id === id)) ?? null);
     } catch {
       setGyms([]);
       setGymIdState(isAdmin ? null : ownGymId);

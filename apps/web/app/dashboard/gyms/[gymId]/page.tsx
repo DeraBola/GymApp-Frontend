@@ -21,7 +21,6 @@ export default function GymDetailPage() {
   const { gymId } = useParams<{ gymId: string }>();
   const { can } = useAuth();
   const { gymId: activeGymId, setGymId, refreshGyms, canSwitchGym } = useGym();
-  const isSuperAdmin = can(Permissions.ManageGyms);
   // The backend guards gym updates with ManageUsers.
   const canEdit = can(Permissions.ManageUsers);
 
@@ -182,7 +181,7 @@ export default function GymDetailPage() {
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }} color="text.primary">Branches</Typography>
-          {isSuperAdmin && (
+          {canEdit && (
             <Button variant="contained" startIcon={<AddIcon />} size="small" onClick={() => setShowBranchModal(true)}>
               Add Branch
             </Button>
@@ -193,7 +192,7 @@ export default function GymDetailPage() {
           rows={branches}
           emptyIcon="🏗️"
           emptyTitle="No branches yet."
-          emptySubtitle={isSuperAdmin ? 'Add one using the button above.' : ''}
+          emptySubtitle={canEdit ? 'Add one using the button above.' : ''}
         />
       </Box>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
+import { SuperAdminOnly } from '../../../components/layout/SuperAdminOnly';
 import { toast } from 'react-toastify';
 import api from '../../../lib/api';
 import { extractPagedItems, getErrorMessage } from '../../../lib/apiHelpers';
@@ -10,7 +11,7 @@ import { Button, TextField, Box, Typography, Stack } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { Permission } from '../../../types/permission';
 
-export default function PermissionsPage() {
+function PermissionsPageContent() {
   const { isAdmin } = useAuth();
   const isSuperAdmin = isAdmin;
 
@@ -146,5 +147,13 @@ export default function PermissionsPage() {
         confirmColor="error"
       />
     </Box>
+  );
+}
+
+export default function PermissionsPage() {
+  return (
+    <SuperAdminOnly>
+      <PermissionsPageContent />
+    </SuperAdminOnly>
   );
 }

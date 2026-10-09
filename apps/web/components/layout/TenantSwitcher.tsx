@@ -71,8 +71,14 @@ export function TenantSwitcher() {
         size="small"
         fullWidth
         value={gyms.some((g) => g.id === gymId) ? gymId : ''}
-        onChange={(e) => setPendingId(e.target.value)}
-        slotProps={{ htmlInput: { 'aria-label': 'Switch gym' } }}
+        onChange={(e) => (gymId ? setPendingId(e.target.value) : setGymId(e.target.value))}
+        slotProps={{
+          htmlInput: { 'aria-label': 'Switch gym' },
+          select: {
+            displayEmpty: true,
+            renderValue: (v) => (v ? gyms.find((g) => g.id === v)?.name : <span className="text-pink-600">Select a gym…</span>),
+          },
+        }}
         sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'white' }, '& .MuiSelect-select': { textTransform: 'capitalize', fontWeight: 600 } }}
       >
         {gyms.map((g) => (

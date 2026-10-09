@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Alert, Button } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
+import { useGym } from '../../context/GymContext';
 
 /**
  * Shown on gym-scoped pages when there's no gym to work with. People who can
@@ -10,6 +11,16 @@ import { useAuth } from '../../context/AuthContext';
  */
 export function NoGymNotice({ what }: { what: string }) {
   const { isAdmin } = useAuth();
+  const { gyms } = useGym();
+
+  // Super Admin with gyms available: they just haven't picked one yet.
+  if (isAdmin && gyms.length > 0) {
+    return (
+      <Alert severity="info" sx={{ borderRadius: 2 }}>
+        Choose a gym from <strong>Managing gym</strong> at the top of the sidebar to see its {what}.
+      </Alert>
+    );
+  }
 
   // Only Super Admins can create gyms.
   if (isAdmin) {

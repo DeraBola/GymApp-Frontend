@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
+import { SuperAdminOnly } from '../../../components/layout/SuperAdminOnly';
 import { toast } from 'react-toastify';
 import api from '../../../lib/api';
 import { extractPagedItems, getErrorMessage } from '../../../lib/apiHelpers';
@@ -19,7 +20,7 @@ const emptyForm = { name: '', description: '' };
 const checkboxSx = { color: '#ec4899', '&.Mui-checked': { color: '#ec4899' } };
 const subtleBtn = { fontSize: '0.75rem', px: 1.5, borderColor: '#e2e8f0', color: 'text.secondary' };
 
-export default function RolesPage() {
+function RolesPageContent() {
   const { isAdmin } = useAuth();
   // Roles are shared by every gym, so only Super Admins change them.
   const canManage = isAdmin;
@@ -288,5 +289,13 @@ export default function RolesPage() {
         confirmColor="error"
       />
     </Box>
+  );
+}
+
+export default function RolesPage() {
+  return (
+    <SuperAdminOnly>
+      <RolesPageContent />
+    </SuperAdminOnly>
   );
 }

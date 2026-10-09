@@ -59,6 +59,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (userData: User & { token: string }) => {
     localStorage.setItem('token', userData.token);
+    // Each sign-in starts without a gym selected; Super Admins choose one.
+    localStorage.removeItem('selectedGymId');
     
     const userObj = {
       id: userData.id,
@@ -87,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('selectedGymId');
     setToken(null);
     setUser(null);
     router.push('/login');

@@ -191,7 +191,9 @@ function UsersPageContent() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {activeRole && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.875rem' }}>
-          <Link href="/dashboard/roles" className="text-slate-500 hover:text-pink-500 transition-colors no-underline text-sm">Roles</Link>
+          {isAdmin
+            ? <Link href="/dashboard/roles" className="text-slate-500 hover:text-pink-500 transition-colors no-underline text-sm">Roles</Link>
+            : <span className="text-slate-500 text-sm">Users</span>}
           <span className="text-slate-400">›</span>
           <Typography variant="body2" color="text.primary" sx={{ fontWeight: 500 }}>{activeRole.name}</Typography>
         </Box>

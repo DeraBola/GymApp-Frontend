@@ -8,8 +8,6 @@ export interface NavLink {
   permission?: string;
   /** Cross-gym pages only Super Admins use */
   superAdminOnly?: boolean;
-  /** Pages for people who belong to a single gym */
-  gymUserOnly?: boolean;
 }
 
 export interface NavSection {
@@ -23,8 +21,8 @@ export const navSections: NavSection[] = [
     links: [
       { href: '/dashboard/analytics', label: 'Analytics', icon: '✦' },
       { href: '/dashboard/gyms', label: 'All Gyms', icon: '🏛️', superAdminOnly: true },
-      // Resolved to /dashboard/gyms/{their gym} in the sidebar
-      { href: '/dashboard/gyms/mine', label: 'My Gym', icon: '🏛️', gymUserOnly: true },
+      // Locations of the gym being managed (gym users see this instead of All Gyms)
+      { href: '/dashboard/branches', label: 'Branches', icon: '📍' },
     ],
   },
   {
@@ -50,8 +48,8 @@ export const navSections: NavSection[] = [
     title: 'Access Control',
     links: [
       { href: '/dashboard/users', label: 'Users', icon: '🧑‍🤝‍🧑' },
-      { href: '/dashboard/roles', label: 'Roles', icon: '🛡️' },
-      { href: '/dashboard/permissions', label: 'Permissions', icon: '🔑' },
+      { href: '/dashboard/roles', label: 'Roles', icon: '🛡️', superAdminOnly: true },
+      { href: '/dashboard/permissions', label: 'Permissions', icon: '🔑', superAdminOnly: true },
     ],
   },
 ];
