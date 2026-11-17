@@ -24,6 +24,18 @@ export const toDateTimeInput = (value?: string | null) => {
   return local.toISOString().slice(0, 16);
 };
 
+/** API date of birth (dd-MM-yyyy) -> <input type="date"> value (yyyy-MM-dd) */
+export const dobToInput = (value?: string | null) => {
+  const m = value?.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : toDateInput(value);
+};
+
+/** <input type="date"> value (yyyy-MM-dd) -> API date of birth (dd-MM-yyyy) */
+export const inputToDob = (value?: string) => {
+  const m = value?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : value ?? '';
+};
+
 /** Date or datetime input value -> UTC ISO string the backend accepts */
 export const toIso = (value?: string) => (value ? new Date(value).toISOString() : null);
 

@@ -3,7 +3,7 @@
 import { Box, Chip, Typography } from '@mui/material';
 import { GymResourcePage, GymResourceConfig } from '../../../components/crud/GymResourcePage';
 import { Permissions } from '../../../lib/auth';
-import { formatDate, toDateInput } from '../../../lib/format';
+import { dobToInput, formatDate, inputToDob } from '../../../lib/format';
 import { Member } from '../../../types/member';
 
 const statusColors: Record<string, { bg: string; color: string; border: string }> = {
@@ -83,7 +83,7 @@ const config: GymResourceConfig<Member> = {
     email: row.email ?? '',
     phoneNumber: row.phoneNumber ?? '',
     gender: row.gender ?? '',
-    dob: toDateInput(row.dob),
+    dob: dobToInput(row.dob),
     address: row.address ?? '',
     status: row.status ?? 'Active',
   }),
@@ -93,7 +93,8 @@ const config: GymResourceConfig<Member> = {
     email: f.email,
     phoneNumber: f.phoneNumber,
     gender: f.gender,
-    dob: f.dob,
+    // The API exchanges dates of birth as dd-MM-yyyy.
+    dob: inputToDob(f.dob),
     address: f.address,
     // Register needs the gym; update needs status (isActive mirrors it).
     gymId,

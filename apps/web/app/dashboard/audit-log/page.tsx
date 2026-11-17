@@ -34,7 +34,11 @@ const ACTIONS: Record<string, { label: string; bg: string; color: string; border
   Created:      { label: 'Created',        bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
   Updated:      { label: 'Updated',        bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
   Deleted:      { label: 'Deleted',        bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
-  SignedIn:     { label: 'Signed in',      bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  Viewed:       { label: 'Viewed',         bg: '#f8fafc', color: '#64748b', border: '#e2e8f0' },
+  Denied:       { label: 'Denied',         bg: '#fff1f2', color: '#be123c', border: '#fecdd3' },
+  Failed:       { label: 'Failed',         bg: '#fffbeb', color: '#b45309', border: '#fde68a' },
+  SignedIn:     { label: 'Signed in',      bg: '#f5f3ff', color: '#7c3aed', border: '#ddd6fe' },
+  SignedOut:    { label: 'Signed out',     bg: '#f5f3ff', color: '#7c3aed', border: '#ddd6fe' },
   SignInFailed: { label: 'Sign-in failed', bg: '#fffbeb', color: '#d97706', border: '#fde68a' },
 };
 
@@ -55,6 +59,8 @@ const RECORD_TYPES: { value: string; label: string }[] = [
   { value: 'Role', label: 'Roles' },
   { value: 'Permission', label: 'Permissions' },
   { value: 'RolePermission', label: 'Role permissions' },
+  { value: 'SalesReport', label: 'Sales report' },
+  { value: 'AuditLog', label: 'Audit log' },
 ];
 
 // Bookkeeping columns that add noise to the change list.
@@ -219,7 +225,7 @@ function AuditLogContent() {
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700 }} color="text.primary">Audit Log</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Every change and sign-in, with who made it and when. Entries can’t be edited or deleted.
+            Everything people do: what they viewed, created, changed or deleted, plus sign-ins and refused attempts. Entries can’t be edited or deleted.
           </Typography>
         </Box>
         <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
