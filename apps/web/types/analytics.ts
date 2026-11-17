@@ -12,4 +12,6 @@ export interface QuickAction {
   href: string;
   icon: string;
   desc: string;
+  /** Only show to users with this permission */
+  permission?: string;
 }

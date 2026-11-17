@@ -5,6 +5,8 @@ import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { GymResourcePage, GymResourceConfig } from '../../../components/crud/GymResourcePage';
 import { useGym } from '../../../context/GymContext';
+import { useAuth } from '../../../context/AuthContext';
+import { Permissions } from '../../../lib/auth';
 import api from '../../../lib/api';
 import { extractData, getErrorMessage } from '../../../lib/apiHelpers';
 import {
@@ -86,6 +88,8 @@ const today = () => localDate(new Date());
 
 function SalesReportCard({ refreshKey }: { refreshKey: number }) {
   const { gymId } = useGym();
+  const { can } = useAuth();
+  const canSeePayments = can(Permissions.ManageUsers);
   const [startDate, setStartDate] = useState(firstOfMonth);
   const [endDate, setEndDate] = useState(today);
   const [report, setReport] = useState<SalesReport | null>(null);
@@ -120,8 +124,13 @@ function SalesReportCard({ refreshKey }: { refreshKey: number }) {
   const stats = [
     { label: 'Sales Revenue', value: formatMoney(report?.totalSales) },
     { label: 'Items Sold', value: report?.totalItemsSold ?? '—' },
-    { label: 'Payments Collected', value: formatMoney(report?.totalPaymentsCollected) },
-    { label: 'Number of Payments', value: report?.numberOfPayments ?? '—' },
+    // Payment figures are for admins only (the API zeroes them for everyone else).
+    ...(canSeePayments
+      ? [
+          { label: 'Payments Collected', value: formatMoney(report?.totalPaymentsCollected) },
+          { label: 'Number of Payments', value: report?.numberOfPayments ?? '—' },
+        ]
+      : []),
   ];
 
   return (
@@ -136,7 +145,7 @@ function SalesReportCard({ refreshKey }: { refreshKey: number }) {
           </Button>
         </Stack>
       </Box>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: `repeat(${stats.length}, 1fr)` }, gap: 2 }}>
         {stats.map((s) => (
           <Box key={s.label} sx={{ p: 2, borderRadius: 2, bgcolor: '#f8fafc', border: '1px solid #f1f5f9' }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }} color="text.primary">{isLoading ? '…' : s.value}</Typography>

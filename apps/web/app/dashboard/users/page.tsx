@@ -16,6 +16,7 @@ import api from '../../../lib/api';
 import { extractData, getErrorMessage } from '../../../lib/apiHelpers';
 import { useAuth } from '../../../context/AuthContext';
 import { useGym } from '../../../context/GymContext';
+import { RequireAccess } from '../../../components/layout/RequireAccess';
 import { Permissions, isSuperAdminRole } from '../../../lib/auth';
 import { assignableRoles, fetchAllRoles, fetchAllUsers, fetchUserRoles, fullName, initials } from '../../../lib/users';
 import { formatDate } from '../../../lib/format';
@@ -362,8 +363,10 @@ function UsersPageContent() {
 
 export default function UsersPage() {
   return (
-    <Suspense fallback={null}>
-      <UsersPageContent />
-    </Suspense>
+    <RequireAccess permission={Permissions.ManageUsers} message="Only gym admins can manage users and their roles.">
+      <Suspense fallback={null}>
+        <UsersPageContent />
+      </Suspense>
+    </RequireAccess>
   );
 }

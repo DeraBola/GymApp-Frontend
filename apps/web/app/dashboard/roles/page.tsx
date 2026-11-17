@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
-import { SuperAdminOnly } from '../../../components/layout/SuperAdminOnly';
+import { RequireAccess } from '../../../components/layout/RequireAccess';
 import { toast } from 'react-toastify';
 import api from '../../../lib/api';
 import { extractPagedItems, getErrorMessage } from '../../../lib/apiHelpers';
@@ -294,8 +294,12 @@ function RolesPageContent() {
 
 export default function RolesPage() {
   return (
-    <SuperAdminOnly>
+    <RequireAccess
+      superAdminOnly
+      title="Only Super Admins can manage roles and permissions"
+      message="Roles are shared by every gym on the platform. To change what someone in your gym can do, assign them a different role from their user page."
+    >
       <RolesPageContent />
-    </SuperAdminOnly>
+    </RequireAccess>
   );
 }

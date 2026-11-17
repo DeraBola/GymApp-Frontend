@@ -39,7 +39,7 @@ export const navSections: NavSection[] = [
     title: 'Business',
     links: [
       { href: '/dashboard/plans', label: 'Membership Plans', icon: '📋' },
-      { href: '/dashboard/payments', label: 'Payments', icon: '💳' },
+      { href: '/dashboard/payments', label: 'Payments', icon: '💳', permission: Permissions.ManageUsers },
       { href: '/dashboard/inventory', label: 'Inventory', icon: '📦' },
       { href: '/dashboard/sales', label: 'Sales', icon: '💎' },
     ],
@@ -47,9 +47,10 @@ export const navSections: NavSection[] = [
   {
     title: 'Access Control',
     links: [
-      { href: '/dashboard/users', label: 'Users', icon: '🧑‍🤝‍🧑' },
+      { href: '/dashboard/users', label: 'Users', icon: '🧑‍🤝‍🧑', permission: Permissions.ManageUsers },
       { href: '/dashboard/roles', label: 'Roles', icon: '🛡️', superAdminOnly: true },
       { href: '/dashboard/permissions', label: 'Permissions', icon: '🔑', superAdminOnly: true },
+      { href: '/dashboard/audit-log', label: 'Audit Log', icon: '📜', permission: Permissions.ManageUsers },
     ],
   },
 ];

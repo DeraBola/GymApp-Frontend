@@ -25,6 +25,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const gymName = gyms.find((g) => g.id === gymId)?.name;
+  const canSeePayments = can('ManageUsers');
 
   useEffect(() => {
     if (isLoadingGyms) return;
@@ -50,13 +51,14 @@ export default function DashboardPage() {
       setStats([
         { label: 'Members', value: val(members, 0), icon: '👤', gradient: '', glow: '', change: gymName ?? 'This gym' },
         { label: 'Membership Plans', value: val(plans, 0), icon: '📋', gradient: '', glow: '', change: 'Available' },
-        { label: 'Payments This Month', value: rep ? formatMoney(rep.totalPaymentsCollected) : '—', icon: '💳', gradient: '', glow: '', change: 'Collected' },
+        // Payment figures are for admins only.
+        ...(canSeePayments ? [{ label: 'Payments This Month', value: rep ? formatMoney(rep.totalPaymentsCollected) : '—', icon: '💳', gradient: '', glow: '', change: 'Collected' }] : []),
         { label: 'Sales This Month', value: rep ? formatMoney(rep.totalSales) : '—', icon: '💎', gradient: '', glow: '', change: 'Inventory sales' },
       ]);
       setIsLoading(false);
     };
     fetchStats();
-  }, [gymId, isLoadingGyms, gyms.length, gymName]);
+  }, [gymId, isLoadingGyms, gyms.length, gymName, canSeePayments]);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
@@ -140,7 +142,7 @@ export default function DashboardPage() {
       <div>
         <h2 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {quickActions.map((action) => (
+          {quickActions.filter((action) => !action.permission || can(action.permission)).map((action) => (
             <Link
               key={action.href}
               href={action.href}

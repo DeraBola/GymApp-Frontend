@@ -1,4 +1,5 @@
 import { QuickAction, StatCard } from '../types/analytics';
+import { Permissions } from '../lib/auth';
 
 export const defaultStats: StatCard[] = [
   {
@@ -33,9 +34,9 @@ export const defaultStats: StatCard[] = [
 
 export const quickActions: QuickAction[] = [
   { label: 'Register a Member', href: '/dashboard/members', icon: '👤', desc: 'Sign up a new member at the front desk' },
-  { label: 'Request a Payment', href: '/dashboard/payments', icon: '💳', desc: 'Send a member a Paystack checkout link' },
+  { label: 'Request a Payment', href: '/dashboard/payments', icon: '💳', desc: 'Send a member a Paystack checkout link', permission: Permissions.ManageUsers },
   { label: 'Record a Sale', href: '/dashboard/sales', icon: '💎', desc: 'Log a shop sale and see this month’s revenue' },
   { label: 'Schedule a Class', href: '/dashboard/classes', icon: '🧘', desc: 'Add a class and assign an instructor' },
   { label: 'Log a Repair', href: '/dashboard/repairs', icon: '🔧', desc: 'Track broken equipment until it’s fixed' },
-  { label: 'Manage Access', href: '/dashboard/users', icon: '🛡️', desc: 'Add users and decide what they can do' },
+  { label: 'Manage Access', href: '/dashboard/users', icon: '🛡️', desc: 'Add users and decide what they can do', permission: Permissions.ManageUsers },
 ];

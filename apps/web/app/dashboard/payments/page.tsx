@@ -15,6 +15,8 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import { Payment, PaymentForm, InitializePaymentResponse } from '../../../types/payment';
 import { Member } from '../../../types/member';
+import { Permissions } from '../../../lib/auth';
+import { RequireAccess } from '../../../components/layout/RequireAccess';
 
 const statusChip = (status: string) => {
   const map: Record<string, { bg: string; color: string; border: string }> = {
@@ -27,7 +29,7 @@ const statusChip = (status: string) => {
   return <Chip label={status || 'Unknown'} size="small" sx={{ bgcolor: s.bg, color: s.color, border: `1px solid ${s.border}`, fontWeight: 600 }} />;
 };
 
-export default function PaymentsPage() {
+function PaymentsPageContent() {
   const { gymId, isLoadingGyms } = useGym();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -307,5 +309,13 @@ export default function PaymentsPage() {
         confirmColor="error"
       />
     </Box>
+  );
+}
+
+export default function PaymentsPage() {
+  return (
+    <RequireAccess permission={Permissions.ManageUsers} message="Only gym admins can view and request payments.">
+      <PaymentsPageContent />
+    </RequireAccess>
   );
 }

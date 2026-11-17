@@ -18,6 +18,7 @@ import { useGym } from '../../../../context/GymContext';
 import { formatDate } from '../../../../lib/format';
 import { AppUser, UserForm } from '../../../../types/user';
 import { Role } from '../../../../types/role';
+import { RequireAccess } from '../../../../components/layout/RequireAccess';
 
 const card = { bgcolor: 'white', border: '1px solid #e2e8f0', borderRadius: 3, p: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' };
 const checkboxSx = { color: '#ec4899', '&.Mui-checked': { color: '#ec4899' } };
@@ -29,7 +30,7 @@ const toForm = (u: AppUser): UserForm => ({
   phoneNumber: u.phoneNumber ?? '',
 });
 
-export default function UserDetailPage() {
+function UserDetailPageContent() {
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser, can, isAdmin } = useAuth();
   const { gyms } = useGym();
@@ -320,5 +321,13 @@ export default function UserDetailPage() {
         isLoading={isSavingRoles}
       />
     </Box>
+  );
+}
+
+export default function UserDetailPage() {
+  return (
+    <RequireAccess permission={Permissions.ManageUsers} message="Only gym admins can manage users and their roles.">
+      <UserDetailPageContent />
+    </RequireAccess>
   );
 }
