@@ -74,7 +74,14 @@ const emptyFormFor = (fields: FieldDef[]): FormValues =>
  * List / create / edit / delete page for a resource that belongs to a gym
  * (staff, plans, classes, equipment, repairs, inventory, sales).
  */
-export function GymResourcePage<T>({ config }: { config: GymResourceConfig<T> }) {
+export function GymResourcePage<T>({
+  config,
+  onDataChange,
+}: {
+  config: GymResourceConfig<T>;
+  /** Called after a record is created, updated or deleted (e.g. to refresh a summary) */
+  onDataChange?: () => void;
+}) {
   const { can } = useAuth();
   const { gymId, isLoadingGyms } = useGym();
   const canManage = config.permission ? can(config.permission) : true;
@@ -175,6 +182,7 @@ export function GymResourcePage<T>({ config }: { config: GymResourceConfig<T> })
       }
       closeForm();
       fetchRows();
+      onDataChange?.();
     } catch (err) {
       toast.error(getErrorMessage(err, `Failed to save ${config.singular.toLowerCase()}.`));
     } finally {
@@ -189,6 +197,7 @@ export function GymResourcePage<T>({ config }: { config: GymResourceConfig<T> })
       await api.delete(config.deleteUrl(deleteRow));
       toast.success(`${config.singular} deleted successfully.`);
       fetchRows();
+      onDataChange?.();
     } catch (err) {
       toast.error(getErrorMessage(err, `Failed to delete ${config.singular.toLowerCase()}.`));
     } finally {

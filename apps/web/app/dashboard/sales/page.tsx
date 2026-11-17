@@ -75,13 +75,16 @@ const config: GymResourceConfig<Sale> = {
   },
 };
 
+/** YYYY-MM-DD for the browser's local calendar day (toISOString would shift to UTC, e.g. 1 Nov → 31 Oct in Lagos). */
+const localDate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const firstOfMonth = () => {
   const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+  return localDate(new Date(d.getFullYear(), d.getMonth(), 1));
 };
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localDate(new Date());
 
-function SalesReportCard() {
+function SalesReportCard({ refreshKey }: { refreshKey: number }) {
   const { gymId } = useGym();
   const [startDate, setStartDate] = useState(firstOfMonth);
   const [endDate, setEndDate] = useState(today);
@@ -108,8 +111,9 @@ function SalesReportCard() {
     }
   };
 
+  // Re-run when the gym changes or a sale is added, edited or deleted.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchReport(); }, [gymId]);
+  useEffect(() => { fetchReport(); }, [gymId, refreshKey]);
 
   if (!gymId) return null;
 
@@ -145,10 +149,11 @@ function SalesReportCard() {
 }
 
 export default function SalesPage() {
+  const [refreshKey, setRefreshKey] = useState(0);
   return (
     <Box>
-      <SalesReportCard />
-      <GymResourcePage config={config} />
+      <SalesReportCard refreshKey={refreshKey} />
+      <GymResourcePage config={config} onDataChange={() => setRefreshKey((k) => k + 1)} />
     </Box>
   );
 }
