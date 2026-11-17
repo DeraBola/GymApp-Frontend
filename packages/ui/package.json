@@ -17,7 +17,8 @@
     "react-dom": ">=18",
     "@mui/material": ">=5",
     "@emotion/react": ">=11",
-    "@emotion/styled": ">=11"
+    "@emotion/styled": ">=11",
+    "@mui/icons-material": ">=5"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
@@ -29,8 +30,6 @@
     "typescript": "5.9.2"
   },
   "dependencies": {
-    "@mui/material": "^6.4.8",
-    "@mui/icons-material": "^6.4.8",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "react": "^19.2.0",
