@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState, ReactNode } from 'react';
+import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { AppTable, AppModal, ConfirmModal, Column } from '@repo/ui';
 import {
-  Box, Button, MenuItem, Stack, TablePagination, TextField, Typography,
+  Alert, Box, Button, MenuItem, Stack, TablePagination, TextField, Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import api from '../../lib/api';
@@ -67,6 +68,9 @@ export interface GymResourceConfig<T> {
   headerExtra?: ReactNode;
 }
 
+const approvalToast = (what: string) =>
+  `Your ${what} was sent to an admin for approval. You’ll see it here once it’s approved.`;
+
 const emptyFormFor = (fields: FieldDef[]): FormValues =>
   Object.fromEntries(fields.map((f) => [f.name, '']));
 
@@ -77,10 +81,13 @@ const emptyFormFor = (fields: FieldDef[]): FormValues =>
 export function GymResourcePage<T>({
   config,
   onDataChange,
+  requiresApproval = false,
 }: {
   config: GymResourceConfig<T>;
   /** Called after a record is created, updated or deleted (e.g. to refresh a summary) */
   onDataChange?: () => void;
+  /** Maker-checker: this user's changes are sent to an admin for approval instead of applied */
+  requiresApproval?: boolean;
 }) {
   const { can } = useAuth();
   const { gymId, isLoadingGyms } = useGym();
@@ -173,12 +180,14 @@ export function GymResourcePage<T>({
     setIsSubmitting(true);
     try {
       const payload = config.toPayload(form, gymId);
-      if (editing) {
-        await api.put(config.updateUrl(editing, gymId), payload);
-        toast.success(`${config.singular} updated successfully!`);
+      const res = editing
+        ? await api.put(config.updateUrl(editing, gymId), payload)
+        : await api.post(config.createUrl(gymId), payload);
+      if (res.status === 202) {
+        // Held for approval: nothing changed yet.
+        toast.info(approvalToast(editing ? 'change' : 'new item'));
       } else {
-        await api.post(config.createUrl(gymId), payload);
-        toast.success(`${config.singular} created successfully!`);
+        toast.success(`${config.singular} ${editing ? 'updated' : 'created'} successfully!`);
       }
       closeForm();
       fetchRows();
@@ -194,8 +203,12 @@ export function GymResourcePage<T>({
     if (!deleteRow) return;
     setIsDeleting(true);
     try {
-      await api.delete(config.deleteUrl(deleteRow));
-      toast.success(`${config.singular} deleted successfully.`);
+      const res = await api.delete(config.deleteUrl(deleteRow));
+      if (res.status === 202) {
+        toast.info(approvalToast('deletion'));
+      } else {
+        toast.success(`${config.singular} deleted successfully.`);
+      }
       fetchRows();
       onDataChange?.();
     } catch (err) {
@@ -288,13 +301,23 @@ export function GymResourcePage<T>({
           {config.headerExtra}
           {canManage && gymId && (
             <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
-              Add {config.singular}
+              {requiresApproval ? `Request ${config.singular}` : `Add ${config.singular}`}
             </Button>
           )}
         </Stack>
       </Box>
 
       {!gymId && !isLoadingGyms && <NoGymNotice what={config.title.toLowerCase()} />}
+
+      {requiresApproval && gymId && (
+        <Alert
+          severity="info"
+          sx={{ borderRadius: 2 }}
+          action={<Button component={Link} href="/dashboard/approvals" size="small" color="inherit">My requests</Button>}
+        >
+          Changes you make here go to an admin for approval first. They’ll appear once approved.
+        </Alert>
+      )}
 
       <TextField
         placeholder={`Search ${config.title.toLowerCase()} on this page...`}
@@ -331,6 +354,7 @@ export function GymResourcePage<T>({
         open={showForm}
         onClose={closeForm}
         title={editing ? `Edit ${config.singular}` : `Add ${config.singular}`}
+        subtitle={requiresApproval ? 'An admin must approve this before it takes effect.' : undefined}
         maxWidth="sm"
       >
         <form onSubmit={handleSubmit}>
@@ -340,7 +364,7 @@ export function GymResourcePage<T>({
           <Stack direction="row" spacing={1.5} sx={{ mt: 2, mb: 1 }}>
             <Button fullWidth variant="outlined" onClick={closeForm} sx={{ borderColor: '#e2e8f0', color: 'text.secondary' }}>Cancel</Button>
             <Button fullWidth variant="contained" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : editing ? 'Save Changes' : `Create ${config.singular}`}
+              {isSubmitting ? 'Saving...' : requiresApproval ? 'Send for Approval' : editing ? 'Save Changes' : `Create ${config.singular}`}
             </Button>
           </Stack>
         </form>
@@ -351,8 +375,8 @@ export function GymResourcePage<T>({
         onClose={() => setDeleteRow(null)}
         onConfirm={handleDelete}
         title={`Delete ${config.singular}?`}
-        message="This action cannot be undone."
-        confirmLabel="Delete"
+        message={requiresApproval ? 'This sends a deletion request to an admin. Nothing is removed until they approve it.' : 'This action cannot be undone.'}
+        confirmLabel={requiresApproval ? "Request Deletion" : "Delete"}
         confirmColor="error"
         isLoading={isDeleting}
       />

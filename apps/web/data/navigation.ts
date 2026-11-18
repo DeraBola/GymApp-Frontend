@@ -23,6 +23,8 @@ export const navSections: NavSection[] = [
       { href: '/dashboard/gyms', label: 'All Gyms', icon: '🏛️', superAdminOnly: true },
       // Locations of the gym being managed (gym users see this instead of All Gyms)
       { href: '/dashboard/branches', label: 'Branches', icon: '📍' },
+      // Admins review staff requests here; staff see their own ("My Requests")
+      { href: '/dashboard/approvals', label: 'Approvals', icon: '✅' },
     ],
   },
   {

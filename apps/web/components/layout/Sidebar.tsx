@@ -2,13 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { ConfirmModal } from '@repo/ui';
 import { navSections } from '../../data/navigation';
 import { Logo } from '../ui/Logo';
 import { TenantSwitcher } from './TenantSwitcher';
 import { APP_NAME } from '../../lib/brand';
+import { Permissions } from '../../lib/auth';
+import { useGym } from '../../context/GymContext';
+import api from '../../lib/api';
+import { extractPagedResult } from '../../lib/apiHelpers';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -19,6 +23,19 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   const pathname = usePathname();
   const { user, logout, can, isAdmin } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const { gymId } = useGym();
+  const isApprover = can(Permissions.ManageUsers);
+  const [pendingApprovals, setPendingApprovals] = useState(0);
+
+  // Pending approval count for admins; refreshed as they move around the dashboard.
+  useEffect(() => {
+    if (!isApprover) { setPendingApprovals(0); return; }
+    let cancelled = false;
+    api.get('/approvals', { params: { status: 'Pending', pageSize: 1, ...(gymId ? { gymId } : {}) } })
+      .then((res) => { if (!cancelled) setPendingApprovals(extractPagedResult(res)?.totalCount ?? 0); })
+      .catch(() => { if (!cancelled) setPendingApprovals(0); });
+    return () => { cancelled = true; };
+  }, [isApprover, gymId, pathname]);
 
   const sidebarContent = (
     <aside className="flex flex-col h-full w-64 bg-white border-r border-slate-200">
@@ -55,7 +72,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               }`}
             >
               <span className="text-base">{link.icon}</span>
-              {link.label}
+              {link.href === '/dashboard/approvals' && !isApprover ? 'My Requests' : link.label}
+              {link.href === '/dashboard/approvals' && pendingApprovals > 0 && (
+                <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-pink-500 text-white text-[0.65rem] font-bold flex items-center justify-center" aria-label={`${pendingApprovals} pending`}>
+                  {pendingApprovals > 99 ? '99+' : pendingApprovals}
+                </span>
+              )}
             </Link>
           );
         })}

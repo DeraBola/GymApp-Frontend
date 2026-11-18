@@ -1,6 +1,8 @@
 'use client';
 
 import { Typography } from '@mui/material';
+import { useAuth } from '../../../context/AuthContext';
+import { Permissions } from '../../../lib/auth';
 import { GymResourcePage, GymResourceConfig } from '../../../components/crud/GymResourcePage';
 import { formatDate, toDateInput, toIso } from '../../../lib/format';
 import { Equipment } from '../../../types/resources';
@@ -38,5 +40,7 @@ const config: GymResourceConfig<Equipment> = {
 };
 
 export default function EquipmentPage() {
-  return <GymResourcePage config={config} />;
+  const { can } = useAuth();
+  // Maker-checker: non-admins' changes are sent to an admin for approval.
+  return <GymResourcePage config={config} requiresApproval={!can(Permissions.ManageUsers)} />;
 }
